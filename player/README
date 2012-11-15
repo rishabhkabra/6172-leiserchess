@@ -1,0 +1,15 @@
+This directory contains the codebase for the main game engine, leiserchess.
+leiserchess.c: the main file that implements the UCI specification and 
+               invokes everything else
+eval.c: the static evaluator that implements different heuristics of the player 
+move_gen: implements the board representation
+search.c: implements the search routine (alpha-beta)
+tt.c: implements the transposition table used by the player (a hashtable 
+      storing positions seen by the player and some other relevant
+      information for evaluating a position)
+util: utility functions, such as random number generator, printing debugging 
+      messages ... etc.
+fen.c: the UCI uses the FEN notations (see description of the FEN notation in
+       doc/engine-interface.txt), so the program needs to translate a FEN 
+       string into the underlying board representation, and this file 
+       contains that logic. 

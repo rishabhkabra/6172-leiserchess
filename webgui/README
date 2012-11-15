@@ -1,0 +1,28 @@
+----------------------------------------------------------------------
+To play the machine
+----------------------------------------------------------------------
+
+In subdirectory webgui, run
+
+    $ python webserver.py
+
+Go to your browser and enter the following URL:
+
+    http://localhost:55555
+
+You are ready to play!
+
+----------------------------------------------------------------------
+Troubleshooting
+----------------------------------------------------------------------
+
+Sometimes the webserver doesn't die properly, hanging up the port and
+preventing a new webserver from starting.  In this case, type
+
+    $ lsof -i :55555
+
+Note the PID of the python job, and type
+
+    $ kill <PID>
+
+
