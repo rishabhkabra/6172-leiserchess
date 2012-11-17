@@ -24,19 +24,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <assert.h>
 #include <stdbool.h>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include "eval.h"
 #include "search.h"
 #include "tt.h"
 #include "util.h"
-
-
-
 
 //----------------------------------------------------------------------
 // Sort stuff

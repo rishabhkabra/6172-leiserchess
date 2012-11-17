@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include "fen.h"
 #include "move_gen.h"
 #include "search.h"
