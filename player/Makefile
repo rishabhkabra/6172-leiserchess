@@ -9,6 +9,8 @@ TEST_DIR := ../tests/
 
 TEST_CONFIG_FILE := basic_old_new
 
+DEPTH := 6
+
 ifeq ($(DEBUG),1)
 	CFLAGS := -DDEBUG -O0 $(CFLAGS)
 	CXXFLAGS := -DDEBUG -O0 $(CXXFLAGS)
@@ -37,10 +39,13 @@ runautotest:
 	echo "Done"
 	grep -i "Illegal" $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
+time: all
+	echo go depth $(DEPTH) > input.txt; echo quit >> input.txt; perf stat ./leiserchess < input.txt
+
 leiserchess: $(OBJ) leiserchess.o
 ifeq ($(PROFILE),1)
 	$(CXX) $(OBJ) leiserchess.o -o $@ -pg
-	echo go depth 6 > input.txt; echo quit >> input.txt; ./leiserchess < input.txt
+	echo go depth $(DEPTH) > input.txt; echo quit >> input.txt; ./leiserchess < input.txt
 	gprof ./leiserchess gmon.out
 else
 	$(CXX) $(OBJ) leiserchess.o -o $@
