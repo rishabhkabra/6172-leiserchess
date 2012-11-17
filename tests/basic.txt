@@ -1,6 +1,6 @@
 cpus = 2
 book = book.dta
-openings = 1000
+game_rounds = 1000
 title = basic
 adjudicate = 400
 
