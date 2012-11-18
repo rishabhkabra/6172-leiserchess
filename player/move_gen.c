@@ -265,52 +265,44 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t  sq = square_of(f, r);
       piece_t x = p->board[sq];
-
       ptype_t typ = ptype_of(x);
+      if (typ == EMPTY) {
+        continue;
+      }
+      assert(typ != INVALID);
       color_t color = color_of(x);
-
-      switch (typ) {
-       case EMPTY:
-        break;
-       case PAWN:
-       case KING:
-        if (color != ctm) {  // Wrong color
-          break;
-        }
-        // directions
-        for (int d = 0; d < 8; d++) {
-          int dest = sq + dir_of(d);
-          if (ptype_of(p->board[dest]) == INVALID) {
-            continue;    // illegal square
-          }
-
-          WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
-          WHEN_DEBUG_VERBOSE({
-            move_to_str(move_of(typ, 0, sq, dest), buf);
-            DEBUG_LOG(1, "Before: %s ", buf);
-          })
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
-
-          WHEN_DEBUG_VERBOSE({
-            move_to_str(get_move(sortable_move_list[move_count-1]), buf);
-            DEBUG_LOG(1, "After: %s\n", buf);
-          })
+      if (color != ctm) {  // Wrong color
+        continue;
+      }
+      // directions
+      for (int d = 0; d < 8; d++) {
+        int dest = sq + dir_of(d);
+        if (ptype_of(p->board[dest]) == INVALID) {
+          continue;    // illegal square
         }
 
-        // rotations - three directions possible
-        for (int rot = 1; rot < 4; ++rot) {
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
-        }
-        if (typ == KING) {  // Also generate null move
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, sq);
-        }
-        break;
-       case INVALID:
-       default:
-        assert(false);  // Couldn't BE more bogus!
+        WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
+        WHEN_DEBUG_VERBOSE({
+          move_to_str(move_of(typ, 0, sq, dest), buf);
+          DEBUG_LOG(1, "Before: %s ", buf);
+        })
+        assert(move_count < MAX_NUM_MOVES);
+        sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+
+        WHEN_DEBUG_VERBOSE({
+          move_to_str(get_move(sortable_move_list[move_count-1]), buf);
+          DEBUG_LOG(1, "After: %s\n", buf);
+        })
+      }
+
+      // rotations - three directions possible
+      for (int rot = 1; rot < 4; ++rot) {
+        assert(move_count < MAX_NUM_MOVES);
+        sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
+      }
+      if (typ == KING) {  // Also generate null move
+        assert(move_count < MAX_NUM_MOVES);
+        sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, sq);
       }
     }
   }
