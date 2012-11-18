@@ -25,7 +25,6 @@
 
 #include "move_gen.h"
 
-
 static void fen_error(char *fen, int c_count, char *msg) {
   fprintf(stderr, "\nError in FEN string:\n");
   fprintf(stderr, "   %s\n  ", fen);  // Indent 3 spaces

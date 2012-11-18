@@ -76,15 +76,17 @@ void set_color(piece_t *x, color_t c) {
   return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
 }*/
 extern ptype_t ptype_of(piece_t x);
+extern square_t from_square(move_t mv);
+extern square_t to_square(move_t mv);
+extern rot_t rot_of(move_t mv);
+extern move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
+extern int ori_of(piece_t x);
 
 void set_ptype(piece_t *x, ptype_t pt) {
   *x = ((pt & PTYPE_MASK) << PTYPE_SHIFT) |
         (*x & ~(PTYPE_MASK << PTYPE_SHIFT));
 }
 
-int ori_of(piece_t x) {
-  return (x >> ORI_SHIFT) & ORI_MASK;
-}
 
 void set_ori(piece_t *x, int ori) {
   *x = ((ori & ORI_MASK) << ORI_SHIFT) |
@@ -202,27 +204,6 @@ int reflect_of(int beam_dir, int pawn_ori) {
   assert(pawn_ori >= 0 && pawn_ori < NUM_ORI);
   return reflect[beam_dir][pawn_ori];
 }
-
-//TODO Inline these 3 fucntions.
-square_t from_square(move_t mv) {
-  return (mv >> FROM_SHIFT) & FROM_MASK;
-}
-
-square_t to_square(move_t mv) {
-  return (mv >> TO_SHIFT) & TO_MASK;
-}
-
-rot_t rot_of(move_t mv) {
-  return (rot_t) ((mv >> ROT_SHIFT) & ROT_MASK);
-}
-
-move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) {
-  return ((typ & PTYPE_MV_MASK) << PTYPE_MV_SHIFT) |
-         ((rot & ROT_MASK) << ROT_SHIFT) |
-         ((from_sq & FROM_MASK) << FROM_SHIFT) |
-         ((to_sq & TO_MASK) << TO_SHIFT);
-}
-
 
 // converts a move to string notation for FEN
 void move_to_str(move_t mv, char *buf) {

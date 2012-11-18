@@ -165,7 +165,7 @@ inline ptype_t ptype_of(piece_t x) {
 }
 
 void set_ptype(piece_t *x, ptype_t pt);
-int ori_of(piece_t x);
+// int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
 //square_t square_of(fil_t f, rnk_t r);
@@ -177,16 +177,39 @@ inline square_t square_of(fil_t f, rnk_t r) {
   return s;
 }
 
+inline square_t from_square(move_t mv) {
+  return (mv >> FROM_SHIFT) & FROM_MASK;
+}
+
+inline square_t to_square(move_t mv) {
+  return (mv >> TO_SHIFT) & TO_MASK;
+}
+
+inline rot_t rot_of(move_t mv) {
+  return (rot_t) ((mv >> ROT_SHIFT) & ROT_MASK);
+}
+
+inline move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) {
+  return ((typ & PTYPE_MV_MASK) << PTYPE_MV_SHIFT) |
+         ((rot & ROT_MASK) << ROT_SHIFT) |
+         ((from_sq & FROM_MASK) << FROM_SHIFT) |
+         ((to_sq & TO_MASK) << TO_SHIFT);
+}
+
+inline int ori_of(piece_t x) {
+  return (x >> ORI_SHIFT) & ORI_MASK;
+}
+
 fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
 int dir_of(int i);
 int beam_of(int direction);
 int reflect_of(int beam_dir, int pawn_ori);
-square_t from_square(move_t mv);
-square_t to_square(move_t mv);
-rot_t rot_of(move_t mv);
-move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
+// square_t from_square(move_t mv);
+// square_t to_square(move_t mv);
+// rot_t rot_of(move_t mv);
+// move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
 void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict);
