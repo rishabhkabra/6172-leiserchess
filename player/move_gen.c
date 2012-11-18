@@ -72,9 +72,10 @@ void set_color(piece_t *x, color_t c) {
         (*x & ~(COLOR_MASK << COLOR_SHIFT));
 }
 
-ptype_t ptype_of(piece_t x) {
+/*ptype_t ptype_of(piece_t x) {
   return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
-}
+}*/
+extern ptype_t ptype_of(piece_t x);
 
 void set_ptype(piece_t *x, ptype_t pt) {
   *x = ((pt & PTYPE_MASK) << PTYPE_SHIFT) |
@@ -136,12 +137,14 @@ void init_zob() {
 
 
 // For no square, use 0, which is guaranteed to be off board
-square_t square_of(fil_t f, rnk_t r) {
+/*square_t square_of(fil_t f, rnk_t r) {
   square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
   DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
-}
+}*/
+
+inline square_t square_of(fil_t f, rnk_t r);
 
 fil_t fil_of(square_t sq) {
   fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;

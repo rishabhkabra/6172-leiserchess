@@ -23,9 +23,11 @@
 #ifndef MOVE_GEN_H
 #define MOVE_GEN_H
 
+#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
-
+#include <stdio.h>
+#include "util.h"
 
 #define MAX_NUM_MOVES 100      // real number = 7 x (8 + 3) + 1 x (8 + 4) = 89
 #define MAX_PLY_IN_SEARCH 100  // up to 100 ply
@@ -156,12 +158,25 @@ color_t color_to_move_of(position_t *p);
 color_t color_of(piece_t x);
 color_t opp_color(color_t c);
 void set_color(piece_t *x, color_t c);
-ptype_t ptype_of(piece_t x);
+//ptype_t ptype_of(piece_t x);
+
+inline ptype_t ptype_of(piece_t x) {
+  return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
+}
+
 void set_ptype(piece_t *x, ptype_t pt);
 int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
-square_t square_of(fil_t f, rnk_t r);
+//square_t square_of(fil_t f, rnk_t r);
+
+inline square_t square_of(fil_t f, rnk_t r) {
+  square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
+  DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
+  assert((s >= 0) && (s < ARR_SIZE));
+  return s;
+}
+
 fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
