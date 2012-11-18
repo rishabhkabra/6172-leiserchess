@@ -126,10 +126,10 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 'n') {  // Black King facing North
           ori = NN;
           typ = KING;
-        } else if (next_c == 'w') {  // White Pawn facing NW
+        } else if (next_c == 'w') {  // Black Pawn facing NW
           ori = NW;
           typ = PAWN;
-        } else if (next_c == 'e') {  // White Pawn facing NE
+        } else if (next_c == 'e') {  // Black Pawn facing NE
           ori = NE;
           typ = PAWN;
         } else {
@@ -176,10 +176,10 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 's') {  // Black King facing South
           ori = SS;
           typ = KING;
-        } else if (next_c == 'w') {  // White Pawn facing SW
+        } else if (next_c == 'w') {  // Black Pawn facing SW
           ori = SW;
           typ = PAWN;
-        } else if (next_c == 'e') {  // White Pawn facing SE
+        } else if (next_c == 'e') {  // Black Pawn facing SE
           ori = SE;
           typ = PAWN;
         } else {
@@ -188,8 +188,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         }
         p->board[square_of(f, r)] = (typ << PTYPE_SHIFT) |
                                     (BLACK << COLOR_SHIFT) |
-                                    (SS << ORI_SHIFT);
-        p->kloc[BLACK] = square_of(f, r);
+                                    (ori << ORI_SHIFT);
         break;
 
       case 'E':
