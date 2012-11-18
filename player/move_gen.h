@@ -60,6 +60,7 @@ typedef int fil_t;
 //----------------------------------------------------------------------
 // pieces
 
+// IMP: Aligning this to 8 gives improvement.
 #define PIECE_SIZE 5  // Number of bits in (ptype, color, orientation)
 
 typedef int piece_t;

@@ -87,12 +87,10 @@ void set_ptype(piece_t *x, ptype_t pt) {
         (*x & ~(PTYPE_MASK << PTYPE_SHIFT));
 }
 
-
 void set_ori(piece_t *x, int ori) {
   *x = ((ori & ORI_MASK) << ORI_SHIFT) |
         (*x & ~(ORI_MASK << ORI_SHIFT));
 }
-
 
 // King orientations
 char *king_ori_to_rep[2][NUM_ORI] = { { "NN", "EE", "SS", "WW" },

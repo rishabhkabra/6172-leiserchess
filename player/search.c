@@ -717,12 +717,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       continue;  // not a legal move
     }
 
-    if (is_game_over(x, &score, pov, ply)) {
-      subpv[0] = 0;
-      goto scored;
-    }
-
-    if (is_repeated(&next_position, &score, ply)) {
+    if ((is_game_over(x, &score, pov, ply)) || (is_repeated(&next_position, &score, ply))) {
       subpv[0] = 0;
       goto scored;
     }
