@@ -381,7 +381,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     bool blunder = false;  // shoot our own piece
 
     (*node_count)++;
-    piece_t victim = make_move(p, &np, mv);  // make the move baby!
+    piece_t victim = make_move(p, &np, mv);  // make the move baby! returns 0 or victim piece or KO (== -1)
     if (victim == KO) {
       continue;
     }
@@ -432,7 +432,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       if (abortf) {
         return 0;
       }
-    }  
+    }
 
    scored:
     if (score > best_score) {
@@ -687,7 +687,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
   if (depth == 1) {
     // we are at depth 1; generate all possible moves
     num_of_moves = generate_all(p, move_list, false);
-    // shuffle the list of moves
+    // shuffle the list of moves. IMP: Commenting out the following loop is a significant performance gain.
     for (int i = 0; i < num_of_moves; i++) {
       int r = myrand() % num_of_moves;
       sortable_move_t tmp = move_list[i];
