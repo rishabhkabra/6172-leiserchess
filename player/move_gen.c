@@ -394,10 +394,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
 
     // Update King locations if necessary
     if (ptype_of(from_piece) == KING) {
-      p->kloc[color_of(from_piece)] = to_sq;
+      p->king_locs[color_of(from_piece)] = to_sq;
     }
     if (ptype_of(to_piece) == KING) {
-      p->kloc[color_of(to_piece)] = from_sq;
+      p->king_locs[color_of(to_piece)] = from_sq;
     }
   } else {  // rotation
 
@@ -423,10 +423,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
 // returns square of piece to be removed from board or 0
 square_t fire(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
-  square_t sq = p->kloc[fctm];
+  square_t sq = p->king_locs[fctm];
   int bdir = ori_of(p->board[sq]);
 
-  assert(ptype_of(p->board[ p->kloc[fctm] ]) == KING);
+  assert(ptype_of(p->board[ p->king_locs[fctm] ]) == KING);
 
   while (true) {
     sq += beam_of(bdir);
@@ -456,12 +456,12 @@ square_t fire(position_t *p) {
 
 
 // return 0 or victim piece or KO (== -1)
-piece_t make_move(position_t *old, position_t *p, move_t mv) {
+piece_t make_move(position_t *previous, position_t *next, move_t mv) {
   assert(mv != 0);
 
-  low_level_make_move(old, p, mv);
+  low_level_make_move(previous, next, mv);
 
-  square_t victim_sq = fire(p);
+  square_t victim_sq = fire(next);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
   WHEN_DEBUG_VERBOSE({
@@ -472,19 +472,19 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
   })
 
   if (victim_sq == 0) {
-    p->victim = 0;
+    next->victim = 0;
 
     if (USE_KO &&  // Ko rule
-        (p->key == (old->key ^ zob_color) || p->key == old->history->key))
+        (next->key == (previous->key ^ zob_color) || next->key == previous->history->key))
       return KO;
 
   } else {  // we definitely hit something with laser
-    p->victim = p->board[victim_sq];
-    p->key ^= zob[victim_sq][p->victim];   // remove from board
-    p->board[victim_sq] = 0;
-    p->key ^= zob[victim_sq][0];
+    next->victim = next->board[victim_sq];
+    next->key ^= zob[victim_sq][next->victim];   // remove from board
+    next->board[victim_sq] = 0;
+    next->key ^= zob[victim_sq][0];
 
-    assert(p->key == compute_zob_key(p));
+    assert(next->key == compute_zob_key(next));
 
     WHEN_DEBUG_VERBOSE({
       square_to_str(victim_sq, buf);
@@ -492,7 +492,7 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     })
   }
 
-  return p->victim;
+  return next->victim;
 }
 
 
@@ -558,9 +558,9 @@ void display(position_t *p) {
   printf("\ninfo Ply: %d\n", p->ply);
   printf("info Color to move: %s\n", color_to_str(color_to_move_of(p)));
 
-  square_to_str(p->kloc[WHITE], buf);
+  square_to_str(p->king_locs[WHITE], buf);
   printf("info White King: %s, ", buf);
-  square_to_str(p->kloc[BLACK], buf);
+  square_to_str(p->king_locs[BLACK], buf);
   printf("info Black King: %s\n", buf);
 
   if (p->last_move != 0) {

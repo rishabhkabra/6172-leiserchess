@@ -372,7 +372,7 @@ int fen_to_pos(position_t *p, char *fen) {
       ptype_t typ = ptype_of(x);
       if (typ == KING) {
         Kings[color_of(x)]++;
-        p->kloc[color_of(x)] = sq;
+        p->king_locs[color_of(x)] = sq;
       }
     }
   }
