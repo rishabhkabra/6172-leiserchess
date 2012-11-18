@@ -46,11 +46,6 @@ struct ttRec {
                            //--------
 };                         // 128 bits total
 
-extern square_t from_square(move_t mv);
-extern square_t to_square(move_t mv);
-extern rot_t rot_of(move_t mv);
-extern move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
-
 // each set is a 4-way set-associative cache and contains 4 records
 #define RECORDS_PER_SET 4
 typedef struct {
