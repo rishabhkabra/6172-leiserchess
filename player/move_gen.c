@@ -464,7 +464,7 @@ square_t fire(position_t *p) {
 
 
 // return 0 or victim piece or KO (== -1)
-piece_t make_move(position_t *old, position_t *p, int mv) {
+piece_t make_move(position_t *old, position_t *p, move_t mv) {
   assert(mv != 0);
 
   low_level_make_move(old, p, mv);
@@ -536,7 +536,10 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
         node_count++;
         continue;
       }
-      np.board[victim_sq] = 0;          // remove piece from board
+      np.victim = np.board[victim_sq];
+      np.key ^= zob[victim_sq][np.victim];   // remove from board
+      np.board[victim_sq] = 0;
+      np.key ^= zob[victim_sq][0];
     }
 
     uint64_t partialcount = perft_search(&np, depth-1, ply+1);

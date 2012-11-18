@@ -33,7 +33,7 @@ public class PlayGame implements Runnable
     private Pattach  pW = new Pattach();
     private Pattach  pB = new Pattach();
     public  Integer  drawMoves;
-    private Integer  nMoveDrawRule = 200;          // 50 move rule - could be any number 
+    private Integer  nMoveDrawRule = 200;          // n-move rule - could be any number 
     private String   gameRecord = null;        // san game record
     private int      gameno;
     // private long     start_time;  // for monitoring tardy games or players but not currently used
@@ -345,10 +345,10 @@ public class PlayGame implements Runnable
                     status = 1;
                 }
 
-                // 50 moves draw 
+                // n-move draw 
                 if (moveclock <= 0) {
                     status = 1; 
-                    System.out.printf("50 move draw detected\n");
+                    System.out.printf("%d move draw detected\n", nMoveDrawRule);
                 }
             }
 
