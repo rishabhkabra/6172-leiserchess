@@ -148,7 +148,7 @@ typedef struct position {
   int          ply;              // Even ply are White, odd are Black
   move_t       last_move;        // move that led to this position
   piece_t      victim;           // piece destroyed by shooter
-  square_t     kloc[2];          // location of kings
+  square_t     king_locs[2];          // location of kings
 } position_t;
 
 
@@ -214,8 +214,8 @@ void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict);
 void do_perft(position_t *gme, int depth, int ply);
-void low_level_make_move(position_t *old, position_t *p, move_t mv);
-piece_t make_move(position_t *old, position_t *p, move_t mv);
+void low_level_make_move(position_t *previous, position_t *next, move_t mv);
+piece_t make_move(position_t *previous, position_t *next, move_t mv);
 void display(position_t *p);
 uint64_t compute_zob_key(position_t *p);
 

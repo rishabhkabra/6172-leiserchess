@@ -301,7 +301,7 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
   return move_count;
 }
 
-void low_level_make_move(position_t *old, position_t *p, move_t mv) {
+void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
   assert(mv != 0);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
@@ -310,11 +310,11 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     DEBUG_LOG(1, "low_level_make_move: %s\n", buf);
   })
 
-  assert(old->key == compute_zob_key(old));
+  assert(previous->key == compute_zob_key(previous));
 
   WHEN_DEBUG_VERBOSE({
     fprintf(stderr, "Before:\n");
-    display(old);
+    display(previous);
   })
 
   square_t from_sq = from_square(mv);
@@ -346,57 +346,57 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     }
   })
 
-  *p = *old;
+  *next = *previous;
 
-  p->history = old;
-  p->last_move = mv;
+  next->history = previous;
+  next->last_move = mv;
 
   assert(from_sq < ARR_SIZE && from_sq > 0);
-  assert(p->board[from_sq] < (1 << PIECE_SIZE) &&
-         p->board[from_sq] >= 0);
+  assert(next->board[from_sq] < (1 << PIECE_SIZE) &&
+         next->board[from_sq] >= 0);
   assert(to_sq < ARR_SIZE && to_sq > 0);
-  assert(p->board[to_sq] < (1 << PIECE_SIZE) &&
-         p->board[to_sq] >= 0);
+  assert(next->board[to_sq] < (1 << PIECE_SIZE) &&
+         next->board[to_sq] >= 0);
 
-  p->key ^= zob_color;   // swap color to move
+  next->key ^= zob_color;   // swap color to move
 
-  piece_t from_piece = p->board[from_sq];
-  piece_t to_piece = p->board[to_sq];
+  piece_t from_piece = next->board[from_sq];
+  piece_t to_piece = next->board[to_sq];
 
   if (to_sq != from_sq) {  // move, not rotation
-    p->board[to_sq] = from_piece;  // swap from_piece and to_piece on board
-    p->board[from_sq] = to_piece;
+    next->board[to_sq] = from_piece;  // swap from_piece and to_piece on board
+    next->board[from_sq] = to_piece;
 
     // Hash key updates
-    p->key ^= zob[from_sq][from_piece];  // remove from_piece from from_sq
-    p->key ^= zob[to_sq][to_piece];  // remove to_piece from to_sq
-    p->key ^= zob[to_sq][from_piece];  // place from_piece in to_sq
-    p->key ^= zob[from_sq][to_piece];  // place to_piece in from_sq
+    next->key ^= zob[from_sq][from_piece];  // remove from_piece from from_sq
+    next->key ^= zob[to_sq][to_piece];  // remove to_piece from to_sq
+    next->key ^= zob[to_sq][from_piece];  // place from_piece in to_sq
+    next->key ^= zob[from_sq][to_piece];  // place to_piece in from_sq
 
     // Update King locations if necessary
     if (ptype_of(from_piece) == KING) {
-      p->kloc[color_of(from_piece)] = to_sq;
+      next->king_locs[color_of(from_piece)] = to_sq;
     }
     if (ptype_of(to_piece) == KING) {
-      p->kloc[color_of(to_piece)] = from_sq;
+      next->king_locs[color_of(to_piece)] = from_sq;
     }
   } else {  // rotation
 
     // remove from_piece from from_sq in hash
-    p->key ^= zob[from_sq][from_piece];
+    next->key ^= zob[from_sq][from_piece];
     set_ori(&from_piece, rot + ori_of(from_piece));  // rotate from_piece
-    p->board[from_sq] = from_piece;  // place rotated piece on board
-    p->key ^= zob[from_sq][from_piece];              // ... and in hash
+    next->board[from_sq] = from_piece;  // place rotated piece on board
+    next->key ^= zob[from_sq][from_piece];              // ... and in hash
   }
 
   // Increment ply
-  p->ply++;
+  next->ply++;
 
-  assert(p->key == compute_zob_key(p));
+  assert(next->key == compute_zob_key(next));
 
   WHEN_DEBUG_VERBOSE({
     fprintf(stderr, "After:\n");
-    display(p);
+    display(next);
   })
 }
 
@@ -404,10 +404,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
 // returns square of piece to be removed from board or 0
 square_t fire(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
-  square_t sq = p->kloc[fctm];
+  square_t sq = p->king_locs[fctm];
   int bdir = ori_of(p->board[sq]);
 
-  assert(ptype_of(p->board[ p->kloc[fctm] ]) == KING);
+  assert(ptype_of(p->board[ p->king_locs[fctm] ]) == KING);
 
   while (true) {
     sq += beam_of(bdir);
@@ -437,12 +437,12 @@ square_t fire(position_t *p) {
 
 
 // return 0 or victim piece or KO (== -1)
-piece_t make_move(position_t *old, position_t *p, move_t mv) {
+piece_t make_move(position_t *previous, position_t *next, move_t mv) {
   assert(mv != 0);
 
-  low_level_make_move(old, p, mv);
+  low_level_make_move(previous, next, mv);
 
-  square_t victim_sq = fire(p);
+  square_t victim_sq = fire(next);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
   WHEN_DEBUG_VERBOSE({
@@ -453,19 +453,19 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
   })
 
   if (victim_sq == 0) {
-    p->victim = 0;
+    next->victim = 0;
 
     if (USE_KO &&  // Ko rule
-        (p->key == (old->key ^ zob_color) || p->key == old->history->key))
+        (next->key == (previous->key ^ zob_color) || next->key == previous->history->key))
       return KO;
 
   } else {  // we definitely hit something with laser
-    p->victim = p->board[victim_sq];
-    p->key ^= zob[victim_sq][p->victim];   // remove from board
-    p->board[victim_sq] = 0;
-    p->key ^= zob[victim_sq][0];
+    next->victim = next->board[victim_sq];
+    next->key ^= zob[victim_sq][next->victim];   // remove from board
+    next->board[victim_sq] = 0;
+    next->key ^= zob[victim_sq][0];
 
-    assert(p->key == compute_zob_key(p));
+    assert(next->key == compute_zob_key(next));
 
     WHEN_DEBUG_VERBOSE({
       square_to_str(victim_sq, buf);
@@ -473,7 +473,7 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     })
   }
 
-  return p->victim;
+  return next->victim;
 }
 
 
@@ -539,9 +539,9 @@ void display(position_t *p) {
   printf("\ninfo Ply: %d\n", p->ply);
   printf("info Color to move: %s\n", color_to_str(color_to_move_of(p)));
 
-  square_to_str(p->kloc[WHITE], buf);
+  square_to_str(p->king_locs[WHITE], buf);
   printf("info White King: %s, ", buf);
-  square_to_str(p->kloc[BLACK], buf);
+  square_to_str(p->king_locs[BLACK], buf);
   printf("info Black King: %s\n", buf);
 
   if (p->last_move != 0) {

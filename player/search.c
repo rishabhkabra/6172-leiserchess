@@ -701,7 +701,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm * 2;  // pov = 1 for White, -1 for Black
 
-  position_t np;            // next position
+  position_t next_position;            // next position
   score_t score;
 
   for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
@@ -712,7 +712,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
     }
 
     (*node_count)++;
-    piece_t x = make_move(p, &np, mv);  // make the move baby!
+    piece_t x = make_move(p, &next_position, mv);  // make the move baby!
     if (x == KO) {
       continue;  // not a legal move
     }
@@ -722,27 +722,27 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       goto scored;
     }
 
-    if (is_repeated(&np, &score, ply)) {
+    if (is_repeated(&next_position, &score, ply)) {
       subpv[0] = 0;
       goto scored;
     }
 
     // first move?
     if (mv_index == 0 || depth == 1) {
-      score = -searchPV(&np, -beta, -alpha, depth - 1, ply + 1,
+      score = -searchPV(&next_position, -beta, -alpha, depth - 1, ply + 1,
                         subpv, node_count);
       if (abortf) {
         return 0;
       }
     } else {
-      score = -scout_search(&np, -alpha, depth - 1, ply + 1, 0,
+      score = -scout_search(&next_position, -alpha, depth - 1, ply + 1, 0,
                             subpv, node_count);
       if (abortf) {
         return 0;
       }
 
       if (score > alpha) {
-        score = -searchPV(&np, -beta, -alpha, depth - 1, ply + 1,
+        score = -searchPV(&next_position, -beta, -alpha, depth - 1, ply + 1,
                           subpv, node_count);
         if (abortf) {
           return 0;
@@ -764,11 +764,11 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       if (et < 0.00001) {
         et = 0.00001;  // hack so that we don't divide by 0
       }
-      uint64_t nps = *node_count / et;
+      uint64_t nodes_per_second = *node_count / et;
 
       fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
-              " nps %" PRIu64 "\n",
-              depth, mv_index + 1, (int) (et * 1000), *node_count, nps);
+              " nodes_per_second %" PRIu64 "\n",
+              depth, mv_index + 1, (int) (et * 1000), *node_count, nodes_per_second);
       fprintf(OUT, "info score cp %d pv %s\n", score, pvbuf);
 
       // -------------------------------------------------------------------

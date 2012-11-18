@@ -52,8 +52,8 @@ bool between(int c, int a, int b) {
 // PBETWEEN heuristic: Bonus for Pawn at (f, r) in rectangle defined by Kings at the corners
 ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
   bool is_between =
-      between(f, fil_of(p->kloc[WHITE]), fil_of(p->kloc[BLACK])) &&
-      between(r, rnk_of(p->kloc[WHITE]), rnk_of(p->kloc[BLACK]));
+      between(f, fil_of(p->king_locs[WHITE]), fil_of(p->king_locs[BLACK])) &&
+      between(r, rnk_of(p->king_locs[WHITE]), rnk_of(p->king_locs[BLACK]));
   return is_between ? PBETWEEN : 0;
 }
 
@@ -63,7 +63,7 @@ ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
   square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
-  square_t opp_sq = p->kloc[opp_color(c)];
+  square_t opp_sq = p->king_locs[opp_color(c)];
   int delta_fil = fil_of(opp_sq) - f;
   int delta_rnk = rnk_of(opp_sq) - r;
   int bonus;
@@ -101,7 +101,7 @@ ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
   color_t c = color_of(x);
   assert(ptype_of(x) == KING);
 
-  square_t opp_sq = p->kloc[opp_color(c)];
+  square_t opp_sq = p->king_locs[opp_color(c)];
   fil_t of = fil_of(opp_sq);
   rnk_t _or = (rnk_t) rnk_of(opp_sq);
 
@@ -161,7 +161,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
   // Returns bonus for attacking vulnerable squares
   // Returns -1 if reverse path is too dangerous
 
-  square_t king_sq = p->kloc[opp_color(c)];
+  square_t king_sq = p->king_locs[opp_color(c)];
   piece_t x = p->board[king_sq];
   assert(ptype_of(x) == KING);
   assert(color_of(x) != c);
@@ -202,7 +202,7 @@ void mark_laser_path(position_t *p, char *laser_map, color_t c,
   position_t np = *p;
 
   // Fire laser, recording in laser_map
-  square_t sq = np.kloc[c];
+  square_t sq = np.king_locs[c];
   int bdir = ori_of(np.board[sq]);
 
   assert(ptype_of(np.board[sq]) == KING);
@@ -268,7 +268,7 @@ int mobility(position_t *p, color_t color) {
 
   // mobility = # safe squares around enemy king
 
-  square_t king_sq = p->kloc[color];
+  square_t king_sq = p->king_locs[color];
   assert(ptype_of(p->board[king_sq]) == KING);
   assert(color_of(p->board[king_sq]) == color);
 
@@ -367,7 +367,7 @@ int h_squares_attackable(position_t *p, color_t c) {
     mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
   }
 
-  square_t o_king_sq = p->kloc[opp_color(c)];
+  square_t o_king_sq = p->king_locs[opp_color(c)];
   assert(ptype_of(p->board[o_king_sq]) == KING);
   assert(color_of(p->board[o_king_sq]) != c);
 
