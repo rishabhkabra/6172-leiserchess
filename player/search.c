@@ -37,9 +37,6 @@
 #include "tt.h"
 #include "util.h"
 
-
-
-
 //----------------------------------------------------------------------
 // Sort stuff
 
@@ -767,7 +764,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       if (et < 0.00001) {
         et = 0.00001;  // hack so that we don't divide by 0
       }
-      uint64_t nps = 1000 * *node_count / et;
+      uint64_t nps = *node_count / et;
 
       fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
               " nps %" PRIu64 "\n",

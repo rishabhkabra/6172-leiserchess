@@ -203,7 +203,7 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
       if (et < 0.00001) {
         et = 0.00001;
       }
-      uint64_t nps = 1000 * node_count / et;
+      uint64_t nps = node_count / et;
 
       fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
               " nps %" PRIu64 "\n",
