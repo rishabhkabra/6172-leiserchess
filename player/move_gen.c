@@ -200,7 +200,6 @@ int reflect_of(int beam_dir, int pawn_ori) {
   return reflect[beam_dir][pawn_ori];
 }
 
-
 piece_t ptype_mv_of(move_t mv) {
   return (mv >> PTYPE_MV_SHIFT) & PTYPE_MV_MASK;
 }
