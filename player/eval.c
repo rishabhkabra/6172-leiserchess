@@ -365,6 +365,7 @@ int h_squares_attackable(position_t *p, color_t c) {
       continue;
     }
     mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+    break;
   }
 
   square_t o_king_sq = p->king_locs[opp_color(c)];
