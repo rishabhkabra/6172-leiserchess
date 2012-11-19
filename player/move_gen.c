@@ -72,16 +72,6 @@ void set_color(piece_t *x, color_t c) {
         (*x & ~(COLOR_MASK << COLOR_SHIFT));
 }
 
-/*ptype_t ptype_of(piece_t x) {
-  return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
-}*/
-extern ptype_t ptype_of(piece_t x);
-extern square_t from_square(move_t mv);
-extern square_t to_square(move_t mv);
-extern rot_t rot_of(move_t mv);
-extern move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
-extern int ori_of(piece_t x);
-
 void set_ptype(piece_t *x, ptype_t pt) {
   *x = ((pt & PTYPE_MASK) << PTYPE_SHIFT) |
         (*x & ~(PTYPE_MASK << PTYPE_SHIFT));
@@ -143,20 +133,6 @@ void init_zob() {
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
 }*/
-
-inline square_t square_of(fil_t f, rnk_t r);
-
-fil_t fil_of(square_t sq) {
-  fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
-  DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
-  return f;
-}
-
-rnk_t rnk_of(square_t sq) {
-  rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
-  DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
-  return r;
-}
 
 // converts a square to string notation, returns number of characters printed
 int square_to_str(square_t sq, char *buf) {

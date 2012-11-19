@@ -178,6 +178,18 @@ inline square_t square_of(fil_t f, rnk_t r) {
   return s;
 }
 
+inline fil_t fil_of(square_t sq) {
+  fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
+  return f;
+}
+
+inline rnk_t rnk_of(square_t sq) {
+  rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
+  DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
+  return r;
+}
+
 inline square_t from_square(move_t mv) {
   return (mv >> FROM_SHIFT) & FROM_MASK;
 }

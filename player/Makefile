@@ -3,7 +3,6 @@ TARGET := leiserchess
 SRC := util.c tt.c fen.c move_gen.c search.c eval.c abort.cpp
 OBJ := $(addsuffix .o, $(basename $(SRC)))
 
-CFLAGS := -c -Wall
 CXXFLAGS := -c -Wall
 TEST_DIR := ../tests/
 
@@ -12,15 +11,12 @@ TEST_CONFIG_FILE := basic_old_new
 DEPTH := 6
 
 ifeq ($(DEBUG),1)
-	CFLAGS := -DDEBUG -O0 $(CFLAGS)
-	CXXFLAGS := -DDEBUG -O0 $(CXXFLAGS)
+	CXXFLAGS := -DDEBUG -O0 -g $(CXXFLAGS)
 else
-	CFLAGS := -DNDEBUG -O3 $(CFLAGS)
 	CXXFLAGS := -DNDEBUG -O3 $(CXXFLAGS)
 endif
 
 ifeq ($(PROFILE),1)
-	CFLAGS += -pg
 	CXXFLAGS += -pg
 endif
 
