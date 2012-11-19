@@ -355,18 +355,18 @@ int h_squares_attackable(position_t *p, color_t c) {
   sortable_move_t lst[MAX_NUM_MOVES];
   int save_ply = p->ply;
   p->ply = c;  // fake out generate_all as to whose turn it is
-  int num_moves = generate_all(p, lst, true);
+  // int num_moves = generate_all(p, lst, true);
   p->ply = save_ply;  // restore
-
-  for (int i = 0; i < num_moves; ++i) {
-    if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
-        (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
-      // move can't affect path of laser
-      continue;
-    }
-    mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
-    break;
-  }
+  mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+  // for (int i = 0; i < num_moves; ++i) {
+  //   if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
+  //       (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
+  //     // move can't affect path of laser
+  //     continue;
+  //   }
+  //   mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+  //   break;
+  // }
 
   square_t o_king_sq = p->king_locs[opp_color(c)];
   assert(ptype_of(p->board[o_king_sq]) == KING);
