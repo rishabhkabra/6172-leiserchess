@@ -382,7 +382,11 @@ score_t eval(position_t *p, bool verbose) {
   //  int corner[2][2] = { {INF, INF}, {INF, INF} };
   ev_score_t bonus;
   char buf[MAX_CHARS_IN_MOVE];
-
+  bool is_between;
+  fil_t fil_of_white_king = fil_of(p->king_locs[WHITE]);
+  fil_t fil_of_black_king = fil_of(p->king_locs[BLACK]);
+  rnk_t rnk_of_white_king = rnk_of(p->king_locs[WHITE]);
+  rnk_t rnk_of_black_king = rnk_of(p->king_locs[BLACK]);
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t sq = square_of(f, r);
@@ -404,7 +408,10 @@ score_t eval(position_t *p, bool verbose) {
           score[c] += bonus;
 
           // PBETWEEN heuristic
-          bonus = pbetween(p, f, r);
+          is_between = between(f, fil_of_white_king, fil_of_black_king) &&
+                       between(r, rnk_of_white_king, rnk_of_black_king);
+          bonus = is_between ? PBETWEEN : 0;
+          // bonus = pbetween(p, f, r);
           // if (verbose) {
           //   printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
           // }
