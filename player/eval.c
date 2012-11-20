@@ -387,19 +387,19 @@ score_t eval(position_t *p, bool verbose) {
   fil_t fil_of_black_king = fil_of(p->king_locs[BLACK]);
   rnk_t rnk_of_white_king = rnk_of(p->king_locs[WHITE]);
   rnk_t rnk_of_black_king = rnk_of(p->king_locs[BLACK]);
+  color_t c;
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t sq = square_of(f, r);
       piece_t x = p->board[sq];
-      color_t c = color_of(x);
       // if (verbose) {
       //   square_to_str(sq, buf);
       // }
-
       switch (ptype_of(x)) {
         case EMPTY:
           break;
         case PAWN:
+          c = color_of(x);
           // MATERIAL heuristic: Bonus for each Pawn
           bonus = PAWN_EV_VALUE;
           // if (verbose) {
@@ -419,6 +419,7 @@ score_t eval(position_t *p, bool verbose) {
           break;
 
         case KING:
+          c = color_of(x);
           // KFACE heuristic
           bonus = kface(p, f, r);
           // if (verbose) {
@@ -433,6 +434,11 @@ score_t eval(position_t *p, bool verbose) {
           //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
           // }
           score[c] += bonus;
+
+          // Did not make the elo better for depth 4.
+          // bonus = pmirror(p, f, r);
+          // score[c] += bonus;
+
           break;
         case INVALID:
           break;

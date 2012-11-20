@@ -1,6 +1,6 @@
 cpus = 2
 book = ../tests/book.dta
-game_rounds = 10
+game_rounds = 20
 title = basic_old_new
 adjudicate = 400
 
@@ -9,8 +9,8 @@ adjudicate = 400
 
 player = newDepth3
 invoke = ../player/leiserchess
-depth = 3
+depth = 4
 
 player = oldDepth3
 invoke = ../player/leiserchess_old
-depth = 3
+depth = 4
