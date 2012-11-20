@@ -412,7 +412,7 @@ int main(int argc, char *argv[]) {
           fprintf(OUT, "Second argument required.  Use 'help' to see valid commands.\n");
           continue;
         }
-        
+
         if (strcmp(tok[1], "startpos") == 0) {
           ix = 0;
           fen_to_pos(&gme[ix], "");

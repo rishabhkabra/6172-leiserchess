@@ -388,9 +388,9 @@ score_t eval(position_t *p, bool verbose) {
       square_t sq = square_of(f, r);
       piece_t x = p->board[sq];
       color_t c = color_of(x);
-      if (verbose) {
-        square_to_str(sq, buf);
-      }
+      // if (verbose) {
+      //   square_to_str(sq, buf);
+      // }
 
       switch (ptype_of(x)) {
         case EMPTY:
@@ -398,33 +398,33 @@ score_t eval(position_t *p, bool verbose) {
         case PAWN:
           // MATERIAL heuristic: Bonus for each Pawn
           bonus = PAWN_EV_VALUE;
-          if (verbose) {
-            printf("MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          }
+          // if (verbose) {
+          //   printf("MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          // }
           score[c] += bonus;
 
           // PBETWEEN heuristic
           bonus = pbetween(p, f, r);
-          if (verbose) {
-            printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          }
+          // if (verbose) {
+          //   printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          // }
           score[c] += bonus;
           break;
 
         case KING:
           // KFACE heuristic
           bonus = kface(p, f, r);
-          if (verbose) {
-            printf("KFACE bonus %d for %s King on %s\n", bonus,
-                   color_to_str(c), buf);
-          }
+          // if (verbose) {
+          //   printf("KFACE bonus %d for %s King on %s\n", bonus,
+          //          color_to_str(c), buf);
+          // }
           score[c] += bonus;
 
           // KAGGRESSIVE heuristic
           bonus = kaggressive(p, f, r);
-          if (verbose) {
-            printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
-          }
+          // if (verbose) {
+          //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
+          // }
           score[c] += bonus;
           break;
         case INVALID:
@@ -437,14 +437,14 @@ score_t eval(position_t *p, bool verbose) {
 
   ev_score_t w_hattackable = HATTACK * h_squares_attackable(p, WHITE);
   score[WHITE] += w_hattackable;
-  if (verbose) {
-    printf("HATTACK bonus %d for White\n", w_hattackable);
-  }
+  // if (verbose) {
+  //   printf("HATTACK bonus %d for White\n", w_hattackable);
+  // }
   ev_score_t b_hattackable = HATTACK * h_squares_attackable(p, BLACK);
   score[BLACK] += b_hattackable;
-  if (verbose) {
-    printf("HATTACK bonus %d for Black\n", b_hattackable);
-  }
+  // if (verbose) {
+  //   printf("HATTACK bonus %d for Black\n", b_hattackable);
+  // }
 
   // score from WHITE point of view
   ev_score_t tot = score[WHITE] - score[BLACK];
