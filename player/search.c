@@ -37,6 +37,9 @@
 #include "tt.h"
 #include "util.h"
 
+
+
+
 //----------------------------------------------------------------------
 // Sort stuff
 
@@ -158,7 +161,7 @@ static bool is_repeated(position_t *p, score_t *score, int ply) {
   return false;
 }
 
-//      best_move_history[color_t][piece_t][square_t][orientation]
+//      best_move_history[color_t][ptype_t][square_t][orientation]
 static int best_move_history[2][6][ARR_SIZE][NUM_ORI];
 
 void init_best_move_history() {
@@ -171,7 +174,7 @@ static void update_best_move_history(position_t *p, int index_of_best,
 
   for (int i = 0; i < count; i++) {
     move_t   mv  = get_move(lst[i]);
-    ptype_t  pce = ptype_of(mv);
+    ptype_t  pce = ptype_mv_of(mv);
     rot_t    ro  = rot_of(mv);   // rotation
     square_t fs  = from_square(mv);
     int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -338,7 +341,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
       // move_list[mv_index] |= (SORT_MASK - 2) << SORT_SHIFT;
     } else {
-      ptype_t  pce = ptype_of(mv);
+      ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -531,7 +534,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
       // move_list[mv_index] |= (SORT_MASK - 2) << SORT_SHIFT;
     } else {
-      ptype_t  pce = ptype_of(mv);
+      ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -764,7 +767,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       if (et < 0.00001) {
         et = 0.00001;  // hack so that we don't divide by 0
       }
-      uint64_t nps = *node_count / et;
+      uint64_t nps = 1000 * *node_count / et;
 
       fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
               " nps %" PRIu64 "\n",

@@ -168,6 +168,7 @@ int square_to_str(square_t sq, char *buf);
 int dir_of(int i);
 int beam_of(int direction);
 int reflect_of(int beam_dir, int pawn_ori);
+ptype_t ptype_mv_of(move_t mv);
 square_t from_square(move_t mv);
 square_t to_square(move_t mv);
 rot_t rot_of(move_t mv);
