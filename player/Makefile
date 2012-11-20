@@ -35,13 +35,29 @@ runautotest:
 	echo "Done"
 	grep -i "Illegal" $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
-time: all
-	echo go depth $(DEPTH) > input.txt; echo quit >> input.txt; perf stat ./leiserchess < input.txt
+time: createinput all
+	perf stat ./leiserchess < input.txt
+
+createinput:
+	echo go depth $(DEPTH) > input.txt;
+	echo move f0e0 >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo move e9U >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo move j4R >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo move f5g4 >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo move f4e5 >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo move g4R >> input.txt;
+	echo go depth $(DEPTH) >> input.txt;
+	echo quit >> input.txt;
 
 leiserchess: $(OBJ) leiserchess.o
 ifeq ($(PROFILE),1)
 	$(CXX) $(OBJ) leiserchess.o -o $@ -pg
-	echo go depth $(DEPTH) > input.txt; echo quit >> input.txt; ./leiserchess < input.txt
+	./leiserchess < input.txt
 	gprof ./leiserchess gmon.out
 else
 	$(CXX) $(OBJ) leiserchess.o -o $@
