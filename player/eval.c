@@ -45,8 +45,7 @@ int KAGGRESSIVE;
 
 // returns true if c lies on or between a and b, which are not ordered
 bool between(int c, int a, int b) {
-  bool x = ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
-  return x;
+  return ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
 }
 
 // PBETWEEN heuristic: Bonus for Pawn at (f, r) in rectangle defined by Kings at the corners
@@ -99,6 +98,7 @@ ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
   square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
+
   assert(ptype_of(x) == KING);
 
   square_t opp_sq = p->king_locs[opp_color(c)];
@@ -324,9 +324,6 @@ int squares_attackable(position_t *p, color_t c) {
   }
   return attackable;
 }
-
-
-
 
 int h_squares_attackable(position_t *p, color_t c) {
   char laser_map[ARR_SIZE];
