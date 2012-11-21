@@ -8,12 +8,12 @@ TEST_DIR := ../tests/
 
 TEST_CONFIG_FILE := basic_old_new
 
-DEPTH := 7
+DEPTH := 6
 
 ifeq ($(DEBUG),1)
 	CXXFLAGS := -DDEBUG -O0 -g $(CXXFLAGS)
 else
-	CXXFLAGS := -DNDEBUG -O3 $(CXXFLAGS)
+	CXXFLAGS := -DNDEBUG -O2 $(CXXFLAGS)
 endif
 
 ifeq ($(PROFILE),1)
