@@ -2,15 +2,19 @@
 #include <cstdio>
 
 int main() {
-  std::cout<<"char square_of_table[10][10] = {\n";
-  for (int f = 0; f < 10; f++) {
-    std::cout<<"{";
-    for (int r = 0; r < 10; r++) {
-      int a =  (16 * (3 + f) + 3 + r);
-      printf(" '\\x%x',", a);
-    }
-    std::cout<<"}\n";
+  std::cout<<"unsigned char fil_of_table[144] = {\n";
+  for (int i = 0; i < 144; i++) {
+    std::cout<<(i/12)<<", ";
+    if (i % 12 == 11) std::cout<<"\n";
   }
   std::cout<<"};\n";
+
+  std::cout<<"\nunsigned char rnk_of_table[144] = {\n";
+  for (int i = 0; i < 144; i++) {
+    std::cout<<(i%12)<<", ";
+    if (i % 12 == 11) std::cout<<"\n";
+  }
+  std::cout<<"};\n";
+
   return 0;
 }
