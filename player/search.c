@@ -194,9 +194,8 @@ static void update_best_move_history(position_t *p, int index_of_best,
 
 void getPV(move_t *pv, char *buf) {
   buf[0] = 0;
-
+  char a[MAX_CHARS_IN_MOVE];
   for (int i = 0; i < (MAX_PLY_IN_SEARCH - 1) && pv[i] != 0; i++) {
-    char a[MAX_CHARS_IN_MOVE];
     move_to_str(pv[i], a);
     if (i != 0) {
       strcat(buf, " ");

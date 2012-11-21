@@ -198,7 +198,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
   return 0;
 }
 
-void mark_laser_path(position_t *p, char *laser_map, color_t c,
+void mark_laser_path(position_t *p, char * laser_map, color_t c,
                      char mark_mask) {
   position_t np = *p;
 
@@ -234,6 +234,10 @@ void mark_laser_path(position_t *p, char *laser_map, color_t c,
       break;
     }
   }
+}
+
+void set_square_validity() {
+
 }
 
 int mobility(position_t *p, color_t color) {
