@@ -392,14 +392,16 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       goto scored;
     }
 
-    if (victim == 0 && quiescence) {
-      continue;   // ignore noncapture moves in quiescence
+    if (quiescence && blunder) {
+      continue;  // ignore own piece captures in quiescence
     }
+    
     if (color_of(np.victim) == fctm) {
       blunder = true;
     }
-    if (quiescence && blunder) {
-      continue;  // ignore own piece captures in quiescence
+
+    if (victim == 0 && quiescence) {
+      continue;   // ignore noncapture moves in quiescence
     }
 
     // A legal move is a move that's not KO, but when we are in quiescence
