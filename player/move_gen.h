@@ -38,15 +38,15 @@
 #define MAX_CHARS_IN_TOKEN 64
 
 // the board (which is 10x10) is centered in a 16x16 array
-#define ARR_WIDTH 16
+#define ARR_WIDTH 12
 #define ARR_SIZE (ARR_WIDTH * ARR_WIDTH)
 
 // board is 10 x 10
 #define BOARD_WIDTH 10
 
 typedef int square_t;
-typedef int rnk_t;
-typedef int fil_t;
+typedef char rnk_t;
+typedef char fil_t;
 
 #define FIL_ORIGIN ((ARR_WIDTH - BOARD_WIDTH) / 2)
 #define RNK_ORIGIN ((ARR_WIDTH - BOARD_WIDTH) / 2)
@@ -194,15 +194,51 @@ inline square_t square_of(fil_t f, rnk_t r) {
   return s;
 }
 
+const unsigned char fil_of_table[144] = {
+  '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', 
+  '\xa', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\xa', 
+  '\xa', '\x1', '\x1', '\x1', '\x1', '\x1', '\x1', '\x1', '\x1', '\x1', '\x1', '\xa', 
+  '\xa', '\x2', '\x2', '\x2', '\x2', '\x2', '\x2', '\x2', '\x2', '\x2', '\x2', '\xa', 
+  '\xa', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\xa', 
+  '\xa', '\x4', '\x4', '\x4', '\x4', '\x4', '\x4', '\x4', '\x4', '\x4', '\x4', '\xa', 
+  '\xa', '\x5', '\x5', '\x5', '\x5', '\x5', '\x5', '\x5', '\x5', '\x5', '\x5', '\xa', 
+  '\xa', '\x6', '\x6', '\x6', '\x6', '\x6', '\x6', '\x6', '\x6', '\x6', '\x6', '\xa', 
+  '\xa', '\x7', '\x7', '\x7', '\x7', '\x7', '\x7', '\x7', '\x7', '\x7', '\x7', '\xa', 
+  '\xa', '\x8', '\x8', '\x8', '\x8', '\x8', '\x8', '\x8', '\x8', '\x8', '\x8', '\xa', 
+  '\xa', '\x9', '\x9', '\x9', '\x9', '\x9', '\x9', '\x9', '\x9', '\x9', '\x9', '\xa', 
+  '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', 
+  };
+
+
 inline fil_t fil_of(square_t sq) {
-  fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  fil_t f = (fil_t) (fil_of_table[sq]);
+  // fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  assert((fil_t)((sq / ARR_WIDTH) - FIL_ORIGIN) == f);
   DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
+  // printf("fil: %d\n", f);
   return f;
 }
 
+const unsigned char rnk_of_table[144] = {
+  '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\x0', '\x1', '\x2', '\x3', '\x4', '\x5', '\x6', '\x7', '\x8', '\x9', '\xa', 
+  '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', '\xa', 
+  };
+
 inline rnk_t rnk_of(square_t sq) {
-  rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
+  rnk_t r = (rnk_t) (rnk_of_table[sq]);
+  assert((rnk_t)((sq % ARR_WIDTH) - RNK_ORIGIN) == r);
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
+  // printf("rank: %d\n", r);
   return r;
 }
 
