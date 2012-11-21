@@ -111,9 +111,9 @@ static int_options iopts[] = {
   { "pbetween",               &PBETWEEN,   0.3 * PAWN_EV_VALUE,   -PAWN_EV_VALUE, PAWN_EV_VALUE },
   { "hash",                       &HASH,   16,                    1,              MAX_HASH   },
   { "draw",                       &DRAW,   -0.07 * PAWN_VALUE,    -PAWN_VALUE,    PAWN_VALUE    },
-  { "randomize",             &RANDOMIZE,   0,                     0,              PAWN_EV_VALUE },
-  { "lmr_r1",                   &LMR_R1,   5,                     1,              MAX_NUM_MOVES },
-  { "lmr_r2",                   &LMR_R2,   20,                    1,              MAX_NUM_MOVES },
+  { "randomize",             &RANDOMIZE,   1,                     0,              PAWN_EV_VALUE },
+  { "lmr_r1",                   &LMR_R1,   1,                     1,              MAX_NUM_MOVES },
+  { "lmr_r2",                   &LMR_R2,   3,                     1,              MAX_NUM_MOVES },
   { "hmb",                         &HMB,   0.03 * PAWN_VALUE,     0,              PAWN_VALUE    },
   { "fut_depth",             &FUT_DEPTH,   3,                     0,              5             },
   // debug options
