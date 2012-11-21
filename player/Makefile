@@ -31,7 +31,7 @@ elo:
 	$(TEST_DIR)pgnrate.tcl -anchor newDepth3 -elo 3000 $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
 runautotest:
-	#rm $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
+	rm $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 	java -jar $(TEST_DIR)lauto.jar $(TEST_DIR)$(TEST_CONFIG_FILE)
 	echo "Done"
 	grep -i "Illegal" $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
