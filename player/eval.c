@@ -45,7 +45,8 @@ int KAGGRESSIVE;
 
 // returns true if c lies on or between a and b, which are not ordered
 bool between(int c, int a, int b) {
-  return ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
+  int x = ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
+  return x;
 }
 
 // PBETWEEN heuristic: Bonus for Pawn at (f, r) in rectangle defined by Kings at the corners
