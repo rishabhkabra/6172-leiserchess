@@ -39,7 +39,6 @@
 
 
 
-
 //----------------------------------------------------------------------
 // Sort stuff
 
@@ -174,7 +173,7 @@ static void update_best_move_history(position_t *p, int index_of_best,
 
   for (int i = 0; i < count; i++) {
     move_t   mv  = get_move(lst[i]);
-    ptype_t  pce = ptype_of(mv);
+    ptype_t  pce = ptype_mv_of(mv);
     rot_t    ro  = rot_of(mv);   // rotation
     square_t fs  = from_square(mv);
     int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -341,7 +340,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
       // move_list[mv_index] |= (SORT_MASK - 2) << SORT_SHIFT;
     } else {
-      ptype_t  pce = ptype_of(mv);
+      ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -534,7 +533,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
       // move_list[mv_index] |= (SORT_MASK - 2) << SORT_SHIFT;
     } else {
-      ptype_t  pce = ptype_of(mv);
+      ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
@@ -674,14 +673,6 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
 
 score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
                    int ply, move_t *pv, uint64_t *node_count, FILE *OUT) {
-  // check whether we should abort
-  tics++;
-  if ((tics & ABORT_CHECK_PERIOD) == 0) {
-    if (milliseconds() >= timeout) {
-      abortf = true;
-      return 0;
-    }
-  }
 
   static int num_of_moves = 0;                     // number of moves in list
   // hopefully, more than we will need

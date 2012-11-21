@@ -229,6 +229,10 @@ inline int ori_of(piece_t x) {
   return (x >> ORI_SHIFT) & ORI_MASK;
 }
 
+inline ptype_t ptype_mv_of(move_t mv) {
+  return (ptype_t) ((mv >> PTYPE_MV_SHIFT) & PTYPE_MV_MASK);
+}
+
 fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
@@ -239,6 +243,7 @@ int reflect_of(int beam_dir, int pawn_ori);
 // square_t to_square(move_t mv);
 // rot_t rot_of(move_t mv);
 // move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
+ptype_t ptype_mv_of(move_t mv);
 void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict);
