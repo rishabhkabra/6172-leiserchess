@@ -39,7 +39,6 @@
 
 
 
-
 //----------------------------------------------------------------------
 // Sort stuff
 
@@ -161,7 +160,7 @@ static bool is_repeated(position_t *p, score_t *score, int ply) {
   return false;
 }
 
-//      best_move_history[color_t][ptype_t][square_t][orientation]
+//      best_move_history[color_t][piece_t][square_t][orientation]
 static int best_move_history[2][6][ARR_SIZE][NUM_ORI];
 
 void init_best_move_history() {
@@ -674,14 +673,6 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
 
 score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
                    int ply, move_t *pv, uint64_t *node_count, FILE *OUT) {
-  // check whether we should abort
-  tics++;
-  if ((tics & ABORT_CHECK_PERIOD) == 0) {
-    if (milliseconds() >= timeout) {
-      abortf = true;
-      return 0;
-    }
-  }
 
   static int num_of_moves = 0;                     // number of moves in list
   // hopefully, more than we will need
