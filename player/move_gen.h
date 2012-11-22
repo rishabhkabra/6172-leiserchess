@@ -144,12 +144,12 @@ typedef enum {
 
 //TODO: Figure out the optimal ordering of this.
 typedef struct position {
-  struct position  *history;     // history of position
   uint64_t     key;              // hash key
-  int          ply;              // Even ply are White, odd are Black
   move_t       last_move;        // move that led to this position
   piece_t      victim;           // piece destroyed by shooter
   square_t     king_locs[2];          // location of kings
+  struct position  *history;     // history of position
+  short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
 } position_t;
 

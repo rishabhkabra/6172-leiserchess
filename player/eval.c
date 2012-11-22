@@ -126,7 +126,7 @@ ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
 
 // Aux routine to look in a given direction and see whether the first piece
 // hit is a mirror (true) or not.
-inline bool probe_for_mirror(position_t *p, square_t sq, int direction) {
+bool probe_for_mirror(position_t *p, square_t sq, int direction) {
   do {
     sq += beam_of(direction);
   } while (ptype_of(p->board[sq]) == EMPTY);
@@ -138,8 +138,7 @@ inline bool probe_for_mirror(position_t *p, square_t sq, int direction) {
 // PMIRROR heuristic: penalty if opaque side of Pawn faces a mirror
 // Penalty for one vulnerability = 2
 // Penalty for two vulnerabilities = 3
-ev_score_t pmirror(position_t *p, fil_t f, rnk_t r) {
-  square_t sq = square_of(f, r);
+ev_score_t pmirror(position_t *p, square_t sq) {
   piece_t x = p->board[sq];
 
   assert(ptype_of(x) == PAWN);
@@ -418,6 +417,9 @@ score_t eval(position_t *p, bool verbose) {
           //   printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
           // }
           score[c] += bonus;
+          // Did not make the elo better for depth 4.
+          // bonus = pmirror(p, sq);
+          // score[c] += bonus;
           break;
 
         case KING:
@@ -436,10 +438,6 @@ score_t eval(position_t *p, bool verbose) {
           //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
           // }
           score[c] += bonus;
-
-          // Did not make the elo better for depth 4.
-          // bonus = pmirror(p, f, r);
-          // score[c] += bonus;
 
           break;
         case INVALID:
