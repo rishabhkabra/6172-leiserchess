@@ -6,9 +6,9 @@ OBJ := $(addsuffix .o, $(basename $(SRC)))
 CXXFLAGS := -c -Wall
 TEST_DIR := ../tests/
 
-TEST_CONFIG_FILE := basic_old_new
+TEST_CONFIG_FILE := basic_old_new_timed
 
-DEPTH := 6
+DEPTH := 7
 
 ifeq ($(DEBUG),1)
 	CXXFLAGS := -DDEBUG -O0 -g $(CXXFLAGS)
