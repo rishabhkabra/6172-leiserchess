@@ -388,6 +388,45 @@ score_t eval(position_t *p, bool verbose) {
   fil_t fil_of_black_king = fil_of(p->king_locs[BLACK]);
   rnk_t rnk_of_white_king = rnk_of(p->king_locs[WHITE]);
   rnk_t rnk_of_black_king = rnk_of(p->king_locs[BLACK]);
+
+  // King heuristics
+  bonus = kface(p, fil_of_black_king, rnk_of_black_king);
+  score[BLACK] += bonus;
+  bonus = kface(p, fil_of_white_king, rnk_of_white_king);
+  score[WHITE] += bonus;
+  // KAGGRESSIVE heuristic
+  bonus = kaggressive(p, fil_of_black_king, rnk_of_black_king);
+  score[BLACK] += bonus;
+  bonus = kaggressive(p, fil_of_white_king, rnk_of_white_king);
+  score[WHITE] += bonus;
+  // if (verbose) {
+  //   printf("KFACE bonus %d for %s King on %s\n", bonus,
+  //          color_to_str(c), buf);
+  // }
+  // if (verbose) {
+  //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
+  // }
+
+
+
+  // for (int c = 0; c < 2; c++) {
+  //   for (int i = 0; i < PAWNS_COUNT; i++) {
+  //     square_t sq = p->pawns_locs[c][i];
+  //     piece_t x = p->board[sq];
+  //     switch (ptype_of(x)) {
+  //       case PAWN:
+  //         // MATERIAL heuristic: Bonus for each Pawn
+  //         bonus = PAWN_EV_VALUE;
+  //         score[c] += bonus;
+  //         // PBETWEEN heuristic
+  //         is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
+  //                      between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
+  //         bonus = is_between ? PBETWEEN : 0;
+  //         score[c] += bonus;
+  //         break;
+  //     }
+  //   }
+  // }
   color_t c;
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
@@ -401,6 +440,15 @@ score_t eval(position_t *p, bool verbose) {
           break;
         case PAWN:
           c = color_of(x);
+          // bool isIncluded = false;
+          // for (int i = 0; i < PAWNS_COUNT; i++) {
+          //   printf("%d color: %s\n", p->pawns_locs[c][i], color_to_str(c));
+          //   if (p->pawns_locs[c][i] == sq) {
+          //     isIncluded = true;
+          //   }
+          // }
+          // printf("Assert: %d color: %s\n", sq, color_to_str(c));
+          // assert(isIncluded);
           // MATERIAL heuristic: Bonus for each Pawn
           bonus = PAWN_EV_VALUE;
           // if (verbose) {
@@ -423,22 +471,6 @@ score_t eval(position_t *p, bool verbose) {
           break;
 
         case KING:
-          c = color_of(x);
-          // KFACE heuristic
-          bonus = kface(p, f, r);
-          // if (verbose) {
-          //   printf("KFACE bonus %d for %s King on %s\n", bonus,
-          //          color_to_str(c), buf);
-          // }
-          score[c] += bonus;
-
-          // KAGGRESSIVE heuristic
-          bonus = kaggressive(p, f, r);
-          // if (verbose) {
-          //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
-          // }
-          score[c] += bonus;
-
           break;
         case INVALID:
           break;
@@ -447,6 +479,7 @@ score_t eval(position_t *p, bool verbose) {
       }
     }
   }
+
 
   ev_score_t w_hattackable = HATTACK * h_squares_attackable(p, WHITE);
   score[WHITE] += w_hattackable;

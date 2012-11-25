@@ -41,6 +41,9 @@
 #define ARR_WIDTH 12
 #define ARR_SIZE (ARR_WIDTH * ARR_WIDTH)
 
+// Pawns array size (number of pawns for each color)
+#define PAWNS_COUNT 7
+
 // board is 10 x 10
 #define BOARD_WIDTH 10
 
@@ -56,7 +59,7 @@ typedef char fil_t;
 #define RNK_SHIFT 0
 #define RNK_MASK 15
 
-
+#define CACHE_LINE_ALIGNMENT __declspec(align(64))
 //----------------------------------------------------------------------
 // pieces
 
@@ -141,16 +144,16 @@ typedef enum {
 
 //----------------------------------------------------------------------
 // position
-
 //TODO: Figure out the optimal ordering of this.
 typedef struct position {
   uint64_t     key;              // hash key
   move_t       last_move;        // move that led to this position
   piece_t      victim;           // piece destroyed by shooter
-  square_t     king_locs[2];          // location of kings
+  square_t     king_locs[2];     // location of kings
   struct position  *history;     // history of position
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
+  square_t     pawns_locs[2][PAWNS_COUNT]; //Locations of the pawns
 } position_t;
 
 
