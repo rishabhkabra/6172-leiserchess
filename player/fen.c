@@ -361,9 +361,15 @@ int fen_to_pos(position_t *p, char *fen) {
     return 1;  // parse error of board
   }
 
-  // King check
+  // Reset pawns
+  for (int i = 0; i < PAWNS_COUNT; i++) {
+    p->pawns_locs[0][i] = 0;
+    p->pawns_locs[1][i] = 0;
+  }
 
+  // King check
   int Kings[2] = {0, 0};
+  int pawns_counter[2] = {0, 0};
   for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
     for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
       square_t sq = square_of(f, r);
@@ -372,8 +378,15 @@ int fen_to_pos(position_t *p, char *fen) {
       if (typ == KING) {
         Kings[color_of(x)]++;
         p->king_locs[color_of(x)] = sq;
+      } else if (typ == PAWN) {
+        p->pawns_locs[color_of(x)][pawns_counter[color_of(x)]] = sq;
+        pawns_counter[color_of(x)]++;
       }
     }
+  }
+  for (int i = 0; i < PAWNS_COUNT; i++) {
+    printf("Pawn locs 0 %d\n", p->pawns_locs[0][i]);
+    printf("Pawn locs 1 %d\n", p->pawns_locs[1][i]);
   }
 
   if (Kings[WHITE] == 0) {

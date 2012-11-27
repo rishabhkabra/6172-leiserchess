@@ -42,12 +42,12 @@
 char  VERSION[] = "1038";
 
 
-#define MAX_HASH 4096       // 4 GB
+#define MAX_HASH 40960       // 40 GB
 #define INF_TIME 99999999999.0
 #define INF_DEPTH 999       // if user does not specify a depth, use 999
 
 // if the time remain is less than this fraction, dont start the next search iteration
-#define RATIO_FOR_TIMEOUT 0.5 
+#define RATIO_FOR_TIMEOUT 0.5
 
 //----------------------------------------------------------------------
 // file I/O
@@ -205,7 +205,7 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
       }
       uint64_t nps = 1000 * node_count / et;
 
-      fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
+      fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64
               " nps %" PRIu64 "\n",
               d, 0, (int) (et * 1000), node_count, nps);
     } else {
@@ -213,7 +213,7 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
     }
 
     // don't start iteration that you cannot complete
-    if (et > tme * RATIO_FOR_TIMEOUT) break; 
+    if (et > tme * RATIO_FOR_TIMEOUT) break;
   }
 
   fprintf(OUT, "bestmove %s\n", bms);
@@ -327,7 +327,7 @@ int parse_string_q(char *s, char *token[]) {
           case '"':
             state = NONWHITESPACE_STARTS;
             *s = '\0';
-            if (*(s+1) != '\0' && *(s+1) != ' ' && 
+            if (*(s+1) != '\0' && *(s+1) != ' ' &&
                 *(s+1) != '\t' && *(s+1) != '\n' && *(s+1) != '\r') {
               fprintf(stderr, "Input parse error: quoted string must be followed by white space\n");
               fprintf(stderr, "ASCII char: %d\n", (int) *(s+1));
@@ -598,7 +598,7 @@ int main(int argc, char *argv[]) {
       if (strcmp(tok[0], "go") == 0) {
         double tme = 0.0;
         double inc = 0.0;
-        int    depth = INF_DEPTH; 
+        int    depth = INF_DEPTH;
         double goal = INF_TIME;
 
         // process various tokens here
@@ -623,13 +623,13 @@ int main(int argc, char *argv[]) {
         if (depth < INF_DEPTH) {
           UciBeginSearch( &gme[ix], depth, INF_TIME );
         } else {
-          goal = tme * 0.02;  // use about 1/50 of main time 
+          goal = tme * 0.02;  // use about 1/50 of main time
           goal += inc * 0.80; // use most of increment
           // sanity check,  make sure that we don't run ourselves too low
-          if (goal*10 > tme) goal = tme / 10.0;   
+          if (goal*10 > tme) goal = tme / 10.0;
 
           UciBeginSearch( &gme[ix], INF_DEPTH, goal );
-        } 
+        }
         continue;
       }
 

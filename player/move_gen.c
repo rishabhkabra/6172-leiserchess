@@ -347,13 +347,33 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     next->key ^= zob[to_sq][from_piece];  // place from_piece in to_sq
     next->key ^= zob[from_sq][to_piece];  // place to_piece in from_sq
 
+    color_t from_piece_color = color_of(from_piece);
+    color_t to_piece_color = color_of(to_piece);
     // Update King locations if necessary
     if (ptype_of(from_piece) == KING) {
-      next->king_locs[color_of(from_piece)] = to_sq;
+      next->king_locs[from_piece_color] = to_sq;
     }
     if (ptype_of(to_piece) == KING) {
-      next->king_locs[color_of(to_piece)] = from_sq;
+      next->king_locs[to_piece_color] = from_sq;
     }
+    // Update Pawns location if neccessary
+    if (ptype_of(from_piece) == PAWN) {
+      for (int i = 0; i < PAWNS_COUNT; i++) {
+        if (next->pawns_locs[from_piece_color][i] == from_sq) {
+          next->pawns_locs[from_piece_color][i] == to_sq;
+          break;
+        }
+      }
+    }
+    if (ptype_of(to_piece) == PAWN) {
+      for (int i = 0; i < PAWNS_COUNT; i++) {
+        if (next->pawns_locs[to_piece_color][i] == to_sq) {
+          next->pawns_locs[to_piece_color][i] == from_sq;
+          break;
+        }
+      }
+    }
+    // Up
   } else {  // rotation
 
     // remove from_piece from from_sq in hash
