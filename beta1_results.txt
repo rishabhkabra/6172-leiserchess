@@ -6,6 +6,9 @@ The anonymized bots are located at /afs/csail/proj/courses/6.172/final_project_p
 You can view additional statistics about your bot, and others in the
 ranking below.
 
+The tournament was round robin in which every pair of bots played each other twice:
+once as player 1 and once as player 2.
+
 Rank Name                       Elo    +    - games score oppo. draws 
    1 b1_r1                      378  125  125    52   88 percent   -15    6 percent 
    2 b1_r2                      242  104  104    52   78 percent    -9   13 percent 
