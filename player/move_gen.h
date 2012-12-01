@@ -153,7 +153,9 @@ typedef struct position {
   struct position  *history;     // history of position
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
-  square_t     pawns_locs[2][PAWNS_COUNT]; //Locations of the pawns
+  square_t     pawns_locs[2][PAWNS_COUNT]; // Locations of the pawns
+  // uint16_t     column_pawns[2][BOARD_WIDTH];
+  // uint16_t     row_pawn[2][BOARD_WIDTH];
 } position_t;
 
 
@@ -175,23 +177,23 @@ void set_ori(piece_t *x, int ori);
 void init_zob();
 //square_t square_of(fil_t f, rnk_t r);
 
-// const unsigned char square_of_table[10][10] = {
-// { '\x33', '\x34', '\x35', '\x36', '\x37', '\x38', '\x39', '\x3a', '\x3b', '\x3c'},
-// { '\x43', '\x44', '\x45', '\x46', '\x47', '\x48', '\x49', '\x4a', '\x4b', '\x4c'},
-// { '\x53', '\x54', '\x55', '\x56', '\x57', '\x58', '\x59', '\x5a', '\x5b', '\x5c'},
-// { '\x63', '\x64', '\x65', '\x66', '\x67', '\x68', '\x69', '\x6a', '\x6b', '\x6c'},
-// { '\x73', '\x74', '\x75', '\x76', '\x77', '\x78', '\x79', '\x7a', '\x7b', '\x7c'},
-// { '\x83', '\x84', '\x85', '\x86', '\x87', '\x88', '\x89', '\x8a', '\x8b', '\x8c'},
-// { '\x93', '\x94', '\x95', '\x96', '\x97', '\x98', '\x99', '\x9a', '\x9b', '\x9c'},
-// { '\xa3', '\xa4', '\xa5', '\xa6', '\xa7', '\xa8', '\xa9', '\xaa', '\xab', '\xac'},
-// { '\xb3', '\xb4', '\xb5', '\xb6', '\xb7', '\xb8', '\xb9', '\xba', '\xbb', '\xbc'},
-// { '\xc3', '\xc4', '\xc5', '\xc6', '\xc7', '\xc8', '\xc9', '\xca', '\xcb', '\xcc'},
-// };
+const unsigned char square_of_table[10][10] = {
+{'\xd', '\xe', '\xf', '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16'},
+{'\x19', '\x1a', '\x1b', '\x1c', '\x1d', '\x1e', '\x1f', '\x20', '\x21', '\x22'},
+{'\x25', '\x26', '\x27', '\x28', '\x29', '\x2a', '\x2b', '\x2c', '\x2d', '\x2e'},
+{'\x31', '\x32', '\x33', '\x34', '\x35', '\x36', '\x37', '\x38', '\x39', '\x3a'},
+{'\x3d', '\x3e', '\x3f', '\x40', '\x41', '\x42', '\x43', '\x44', '\x45', '\x46'},
+{'\x49', '\x4a', '\x4b', '\x4c', '\x4d', '\x4e', '\x4f', '\x50', '\x51', '\x52'},
+{'\x55', '\x56', '\x57', '\x58', '\x59', '\x5a', '\x5b', '\x5c', '\x5d', '\x5e'},
+{'\x61', '\x62', '\x63', '\x64', '\x65', '\x66', '\x67', '\x68', '\x69', '\x6a'},
+{'\x6d', '\x6e', '\x6f', '\x70', '\x71', '\x72', '\x73', '\x74', '\x75', '\x76'},
+{'\x79', '\x7a', '\x7b', '\x7c', '\x7d', '\x7e', '\x7f', '\x80', '\x81', '\x82'},
+};
 
 inline square_t square_of(fil_t f, rnk_t r) {
   square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
   // square_t s = (square_t)(square_of_table[f][r]);
-  // assert((square_t) (ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r) ==  s);
+  assert((square_t) (ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r) ==  s);
   DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
   assert((s >= 0) && (s < ARR_SIZE));
   return s;

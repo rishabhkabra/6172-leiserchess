@@ -125,7 +125,6 @@ void init_zob() {
   zob_color = myrand();
 }
 
-
 // For no square, use 0, which is guaranteed to be off board
 /*square_t square_of(fil_t f, rnk_t r) {
   square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
@@ -360,7 +359,7 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     if (ptype_of(from_piece) == PAWN) {
       for (int i = 0; i < PAWNS_COUNT; i++) {
         if (next->pawns_locs[from_piece_color][i] == from_sq) {
-          next->pawns_locs[from_piece_color][i] == to_sq;
+          next->pawns_locs[from_piece_color][i] = to_sq;
           break;
         }
       }
@@ -368,7 +367,7 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     if (ptype_of(to_piece) == PAWN) {
       for (int i = 0; i < PAWNS_COUNT; i++) {
         if (next->pawns_locs[to_piece_color][i] == to_sq) {
-          next->pawns_locs[to_piece_color][i] == from_sq;
+          next->pawns_locs[to_piece_color][i] = from_sq;
           break;
         }
       }
@@ -458,7 +457,15 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
     next->key ^= zob[victim_sq][next->victim];   // remove from board
     next->board[victim_sq] = 0;
     next->key ^= zob[victim_sq][0];
-
+    color_t victim_color = color_of(next->victim);
+    if (ptype_of(next->victim)) {
+      for (int i = 0; i < PAWNS_COUNT; i++) {
+        if (next->pawns_locs[victim_color][i] == victim_sq) {
+          next->pawns_locs[victim_color][i] = 0;
+          break;
+        }
+      }
+    }
     assert(next->key == compute_zob_key(next));
 
     WHEN_DEBUG_VERBOSE({

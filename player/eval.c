@@ -208,6 +208,7 @@ void mark_laser_path(position_t *p, char * laser_map, color_t c,
   assert(ptype_of(np.board[sq]) == KING);
   laser_map[sq] |= mark_mask;
 
+
   while (true) {
     sq += beam_of(bdir);
     laser_map[sq] |= mark_mask;
@@ -344,19 +345,21 @@ int h_squares_attackable(position_t *p, color_t c) {
 
   mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
 
-  sortable_move_t lst[MAX_NUM_MOVES];
-  int save_ply = p->ply;
-  p->ply = c;  // fake out generate_all as to whose turn it is
-  // int num_moves = generate_all(p, lst, true);
-  p->ply = save_ply;  // restore
-  mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+  // Verified: This code currently doesn't do anything new.
+  // sortable_move_t lst[MAX_NUM_MOVES];
+  // int save_ply = p->ply;
+  // p->ply = c;  // fake out generate_all as to whose turn it is
+  // // int num_moves = generate_all(p, lst, true);
+  // p->ply = save_ply;  // restore
+  // mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
   // for (int i = 0; i < num_moves; ++i) {
   //   if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
   //       (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
   //     // move can't affect path of laser
   //     continue;
   //   }
-  //   mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+  // mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+
   //   break;
   // }
 
@@ -376,9 +379,93 @@ int h_squares_attackable(position_t *p, color_t c) {
   return h_attackable;
 }
 
+// Unoptimized eval function for testing purpuses
+score_t unoptimized_eval(position_t *p, bool verbose) {
+  // verbose = true: print out components of score
+  ev_score_t score[2] = { 0, 0 };
+  //  int corner[2][2] = { {INF, INF}, {INF, INF} };
+  ev_score_t bonus;
+  char buf[MAX_CHARS_IN_MOVE];
+
+  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
+    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
+      square_t sq = square_of(f, r);
+      piece_t x = p->board[sq];
+      color_t c = color_of(x);
+      if (verbose) {
+        square_to_str(sq, buf);
+      }
+
+      switch (ptype_of(x)) {
+        case EMPTY:
+          break;
+        case PAWN:
+          // MATERIAL heuristic: Bonus for each Pawn
+          bonus = PAWN_EV_VALUE;
+          if (verbose) {
+            printf("MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          }
+          score[c] += bonus;
+
+          // PBETWEEN heuristic
+          bonus = pbetween(p, f, r);
+          if (verbose) {
+            printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          }
+          score[c] += bonus;
+          break;
+
+        case KING:
+          // KFACE heuristic
+          bonus = kface(p, f, r);
+          if (verbose) {
+            printf("KFACE bonus %d for %s King on %s\n", bonus,
+                   color_to_str(c), buf);
+          }
+          score[c] += bonus;
+
+          // KAGGRESSIVE heuristic
+          bonus = kaggressive(p, f, r);
+          if (verbose) {
+            printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
+          }
+          score[c] += bonus;
+          break;
+        case INVALID:
+          break;
+        default:
+          assert(false);   // No way, Jose!
+      }
+    }
+  }
+
+  ev_score_t w_hattackable = HATTACK * h_squares_attackable(p, WHITE);
+  score[WHITE] += w_hattackable;
+  if (verbose) {
+    printf("HATTACK bonus %d for White\n", w_hattackable);
+  }
+  ev_score_t b_hattackable = HATTACK * h_squares_attackable(p, BLACK);
+  score[BLACK] += b_hattackable;
+  if (verbose) {
+    printf("HATTACK bonus %d for Black\n", b_hattackable);
+  }
+
+  // score from WHITE point of view
+  ev_score_t tot = score[WHITE] - score[BLACK];
+
+  if (RANDOMIZE) {
+    ev_score_t  z = rand() % (RANDOMIZE*2+1);
+    tot = tot + z - RANDOMIZE;
+  }
+
+  if (color_to_move_of(p) == BLACK) {
+    tot = -tot;
+  }
+  return tot / EV_SCORE_RATIO;
+}
+
 // Static evaluation.  Returns score
 score_t eval(position_t *p, bool verbose) {
-  // verbose = true: print out components of score
   ev_score_t score[2] = { 0, 0 };
   //  int corner[2][2] = { {INF, INF}, {INF, INF} };
   ev_score_t bonus;
@@ -399,98 +486,46 @@ score_t eval(position_t *p, bool verbose) {
   score[BLACK] += bonus;
   bonus = kaggressive(p, fil_of_white_king, rnk_of_white_king);
   score[WHITE] += bonus;
-  // if (verbose) {
-  //   printf("KFACE bonus %d for %s King on %s\n", bonus,
-  //          color_to_str(c), buf);
-  // }
-  // if (verbose) {
-  //   printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
-  // }
 
-
-
-  // for (int c = 0; c < 2; c++) {
-  //   for (int i = 0; i < PAWNS_COUNT; i++) {
-  //     square_t sq = p->pawns_locs[c][i];
-  //     piece_t x = p->board[sq];
-  //     switch (ptype_of(x)) {
-  //       case PAWN:
-  //         // MATERIAL heuristic: Bonus for each Pawn
-  //         bonus = PAWN_EV_VALUE;
-  //         score[c] += bonus;
-  //         // PBETWEEN heuristic
-  //         is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
-  //                      between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
-  //         bonus = is_between ? PBETWEEN : 0;
-  //         score[c] += bonus;
-  //         break;
-  //     }
-  //   }
-  // }
-  color_t c;
-  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
-      square_t sq = square_of(f, r);
+  for (int c = 0; c < 2; c++) {
+    for (int i = 0; i < PAWNS_COUNT; i++) {
+      square_t sq = p->pawns_locs[c][i];
       piece_t x = p->board[sq];
-      // if (verbose) {
-      //   square_to_str(sq, buf);
-      // }
       switch (ptype_of(x)) {
-        case EMPTY:
-          break;
         case PAWN:
-          c = color_of(x);
-          // bool isIncluded = false;
-          // for (int i = 0; i < PAWNS_COUNT; i++) {
-          //   printf("%d color: %s\n", p->pawns_locs[c][i], color_to_str(c));
-          //   if (p->pawns_locs[c][i] == sq) {
-          //     isIncluded = true;
-          //   }
-          // }
-          // printf("Assert: %d color: %s\n", sq, color_to_str(c));
-          // assert(isIncluded);
           // MATERIAL heuristic: Bonus for each Pawn
           bonus = PAWN_EV_VALUE;
-          // if (verbose) {
-          //   printf("MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          // }
           score[c] += bonus;
-
           // PBETWEEN heuristic
-          is_between = between(f, fil_of_white_king, fil_of_black_king) &&
-                       between(r, rnk_of_white_king, rnk_of_black_king);
+          is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
+                       between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
           bonus = is_between ? PBETWEEN : 0;
-          // bonus = pbetween(p, f, r);
-          // if (verbose) {
-          //   printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          // }
           score[c] += bonus;
-          // Did not make the elo better for depth 4.
-          // bonus = pmirror(p, sq);
-          // score[c] += bonus;
-          break;
-
-        case KING:
           break;
         case INVALID:
           break;
         default:
-          assert(false);   // No way, Jose!
+          assert(false);
       }
     }
   }
 
+  // Make sure that the squares in the pawns_locs are unique.
+  // for (int i = 0; i < 2 * PAWNS_COUNT; i++) {
+  //   square_t sq = *(*(p->pawns_locs) + i);
+  //   for (int j = i+1; j < 2 * PAWNS_COUNT; j++) {
+  //     square_t sq2 = *(*(p->pawns_locs) + j);
+  //     if (sq) {
+  //       assert( sq != sq2);
+  //     }
+  //   }
+  // }
 
   ev_score_t w_hattackable = HATTACK * h_squares_attackable(p, WHITE);
   score[WHITE] += w_hattackable;
-  // if (verbose) {
-  //   printf("HATTACK bonus %d for White\n", w_hattackable);
-  // }
+
   ev_score_t b_hattackable = HATTACK * h_squares_attackable(p, BLACK);
   score[BLACK] += b_hattackable;
-  // if (verbose) {
-  //   printf("HATTACK bonus %d for Black\n", b_hattackable);
-  // }
 
   // score from WHITE point of view
   ev_score_t tot = score[WHITE] - score[BLACK];
@@ -503,6 +538,6 @@ score_t eval(position_t *p, bool verbose) {
   if (color_to_move_of(p) == BLACK) {
     tot = -tot;
   }
-
+  assert(unoptimized_eval(p, verbose) == tot / EV_SCORE_RATIO);
   return tot / EV_SCORE_RATIO;
 }

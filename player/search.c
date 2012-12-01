@@ -66,6 +66,11 @@ int FUT_DEPTH;     // set to zero for no futilty
 
 static move_t killer[MAX_PLY_IN_SEARCH][4];   // up to 4 killers
 
+// typedef struct {
+//      move_t killer[..][..];
+// } killer_t;
+// static cilk::holder<killer_t> killer;
+// killer().killer[ply][0] = ....
 
 sort_key_t sort_key(sortable_move_t mv) {
   return (sort_key_t) ((mv >> SORT_SHIFT) & SORT_MASK);
@@ -355,7 +360,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   int legal_move_count = 0;
   int mv_index;  // used outside of the loop
   int best_move_index = 0;   // index of best move found
-
+  // ki
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
 
@@ -754,7 +759,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
       }
       uint64_t nodes_per_second = 1000 * *node_count / et;
 
-      fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64 
+      fprintf(OUT, "info depth %d move_no %d time (microsec) %d nodes %" PRIu64
               " nodes_per_second %" PRIu64 "\n",
               depth, mv_index + 1, (int) (et * 1000), *node_count, nodes_per_second);
       fprintf(OUT, "info score cp %d pv %s\n", score, pvbuf);
