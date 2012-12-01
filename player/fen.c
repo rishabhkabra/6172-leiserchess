@@ -112,7 +112,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         }
         p->board[square_of(f, r)] = (typ << PTYPE_SHIFT) |
                                     (WHITE << COLOR_SHIFT) |
-                                    (ori << ORI_SHIFT);
+                                    (ori << ORIENTATION_SHIFT);
         break;
 
       case 'n':
@@ -137,7 +137,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         }
         p->board[square_of(f, r)] = (typ << PTYPE_SHIFT) |
                                     (BLACK << COLOR_SHIFT) |
-                                    (ori << ORI_SHIFT);
+                                    (ori << ORIENTATION_SHIFT);
         break;
 
       case 'S':
@@ -162,7 +162,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         }
         p->board[square_of(f, r)] = (typ << PTYPE_SHIFT) |
                                     (WHITE << COLOR_SHIFT) |
-                                    (ori << ORI_SHIFT);
+                                    (ori << ORIENTATION_SHIFT);
         break;
 
       case 's':
@@ -187,7 +187,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         }
         p->board[square_of(f, r)] = (typ << PTYPE_SHIFT) |
                                     (BLACK << COLOR_SHIFT) |
-                                    (ori << ORI_SHIFT);
+                                    (ori << ORIENTATION_SHIFT);
         break;
 
       case 'E':
@@ -200,7 +200,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 'E') {  // White King facing East
           p->board[square_of(f, r)] = (KING << PTYPE_SHIFT) |
                                       (WHITE << COLOR_SHIFT) |
-                                      (EE << ORI_SHIFT);
+                                      (EE << ORIENTATION_SHIFT);
         } else {
           fen_error(fen, c_count+1, "Syntax error");
           return 0;
@@ -217,7 +217,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 'W') {  // White King facing West
           p->board[square_of(f, r)] = (KING << PTYPE_SHIFT) |
                                       (WHITE << COLOR_SHIFT) |
-                                      (WW << ORI_SHIFT);
+                                      (WW << ORIENTATION_SHIFT);
         } else {
           fen_error(fen, c_count+1, "Syntax error");
           return 0;
@@ -234,7 +234,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 'e') {  // Black King facing East
           p->board[square_of(f, r)] = (KING << PTYPE_SHIFT) |
                                       (BLACK << COLOR_SHIFT) |
-                                      (EE << ORI_SHIFT);
+                                      (EE << ORIENTATION_SHIFT);
         } else {
           fen_error(fen, c_count+1, "Syntax error");
           return 0;
@@ -251,7 +251,7 @@ static int parse_fen_board(position_t *p, char *fen) {
         if (next_c == 'w') {  // Black King facing West
           p->board[square_of(f, r)] = (KING << PTYPE_SHIFT) |
                                       (BLACK << COLOR_SHIFT) |
-                                      (WW << ORI_SHIFT);
+                                      (WW << ORIENTATION_SHIFT);
         } else {
           fen_error(fen, c_count+1, "Syntax error");
           return 0;

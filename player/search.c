@@ -166,7 +166,7 @@ static bool is_repeated(position_t *p, score_t *score, int ply) {
 }
 
 //      best_move_history[color_t][piece_t][square_t][orientation]
-static int best_move_history[2][6][ARR_SIZE][NUM_ORI];
+static int best_move_history[2][6][ARR_SIZE][NUM_ORIENTATION];
 
 void init_best_move_history() {
   memset(best_move_history, 0, sizeof(best_move_history));
@@ -181,7 +181,7 @@ static void update_best_move_history(position_t *p, int index_of_best,
     ptype_t  pce = ptype_mv_of(mv);
     rot_t    ro  = rot_of(mv);   // rotation
     square_t fs  = from_square(mv);
-    int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
+    int      ot  = ORIENTATION_MASK & (ori_of(p->board[fs]) + ro);
     square_t ts  = to_square(mv);
 
     int  s = best_move_history[ctm][pce][ts][ot];
@@ -347,7 +347,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
-      int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
+      int      ot  = ORIENTATION_MASK & (ori_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
       set_sort_key(&move_list[mv_index], best_move_history[fctm][pce][ts][ot]);
     }
@@ -540,7 +540,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
       ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
-      int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
+      int      ot  = ORIENTATION_MASK & (ori_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
       set_sort_key(&move_list[mv_index], best_move_history[fctm][pce][ts][ot]);
     }

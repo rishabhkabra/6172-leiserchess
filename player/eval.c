@@ -146,7 +146,7 @@ ev_score_t pmirror(position_t *p, square_t sq) {
   int penalty = 0;
 
   for (int i = 1; i <= 2; ++i) {
-    int direction = ORI_MASK & (i + ori_of(x));
+    int direction = ORIENTATION_MASK & (i + ori_of(x));
     if (probe_for_mirror(p, sq, direction)) {
       penalty += 2;
     }
@@ -193,7 +193,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
     f = tmpf;
     break;
   }
-  bdir = (king_ori_t) ((bdir - k_ori) & ORI_MASK);
+  bdir = (king_ori_t) ((bdir - k_ori) & ORIENTATION_MASK);
   return 0;
 }
 

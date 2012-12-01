@@ -95,9 +95,9 @@ typedef enum {
 //----------------------------------------------------------------------
 // Orientations
 
-#define NUM_ORI 4
-#define ORI_SHIFT 0
-#define ORI_MASK (NUM_ORI - 1)
+#define NUM_ORIENTATION 4
+#define ORIENTATION_SHIFT 0
+#define ORIENTATION_MASK (NUM_ORIENTATION - 1)
 
 typedef enum {
   NN,
@@ -267,7 +267,7 @@ inline move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) 
 }
 
 inline int ori_of(piece_t x) {
-  return (x >> ORI_SHIFT) & ORI_MASK;
+  return (x >> ORIENTATION_SHIFT) & ORIENTATION_MASK;
 }
 
 inline ptype_t ptype_mv_of(move_t mv) {
