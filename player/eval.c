@@ -68,7 +68,7 @@ ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
   int delta_rnk = rnk_of(opp_sq) - r;
   int bonus;
 
-  switch (ori_of(p->board[sq])) {
+  switch (orientation_of(p->board[sq])) {
    case NN:
     bonus = delta_rnk;
     break;
@@ -132,7 +132,7 @@ bool probe_for_mirror(position_t *p, square_t sq, int direction) {
   } while (ptype_of(p->board[sq]) == EMPTY);
 
   return (ptype_of(p->board[sq]) == PAWN &&
-          reflect_of(direction, ori_of(p->board[sq])) >= 0);
+          reflect_of(direction, orientation_of(p->board[sq])) >= 0);
 }
 
 // PMIRROR heuristic: penalty if opaque side of Pawn faces a mirror
@@ -146,7 +146,7 @@ ev_score_t pmirror(position_t *p, square_t sq) {
   int penalty = 0;
 
   for (int i = 1; i <= 2; ++i) {
-    int direction = ORIENTATION_MASK & (i + ori_of(x));
+    int direction = ORIENTATION_MASK & (i + orientation_of(x));
     if (probe_for_mirror(p, sq, direction)) {
       penalty += 2;
     }
@@ -157,7 +157,7 @@ ev_score_t pmirror(position_t *p, square_t sq) {
 }
 
 // c is color-to-move
-int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
+int king_vul(position_t *p, color_t c, square_t sq, king_orientation_t bdir) {
   // Returns bonus for attacking vulnerable squares
   // Returns -1 if reverse path is too dangerous
 
@@ -165,7 +165,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
   piece_t x = p->board[king_sq];
   assert(ptype_of(x) == KING);
   assert(color_of(x) != c);
-  king_ori_t k_ori = (king_ori_t) ori_of(x);
+  king_orientation_t k_ori = (king_orientation_t) orientation_of(x);
 
   fil_t f = fil_of(sq);
   rnk_t r = rnk_of(sq);
@@ -193,7 +193,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
     f = tmpf;
     break;
   }
-  bdir = (king_ori_t) ((bdir - k_ori) & ORIENTATION_MASK);
+  bdir = (king_orientation_t) ((bdir - k_ori) & ORIENTATION_MASK);
   return 0;
 }
 
@@ -202,7 +202,7 @@ void mark_laser_path(position_t *p, bool * laser_map, color_t c) {
 
   // Fire laser, recording in laser_map
   square_t sq = np.king_locs[c];
-  int bdir = ori_of(np.board[sq]);
+  int bdir = orientation_of(np.board[sq]);
 
   assert(ptype_of(np.board[sq]) == KING);
   laser_map[sq] = true;
@@ -217,7 +217,7 @@ void mark_laser_path(position_t *p, bool * laser_map, color_t c) {
      case EMPTY:  // empty square
       break;
      case PAWN:  // Pawn
-      bdir = reflect_of(bdir, ori_of(p->board[sq]));
+      bdir = reflect_of(bdir, orientation_of(p->board[sq]));
       if (bdir < 0) {  // Hit back of Pawn
         return;
       }
