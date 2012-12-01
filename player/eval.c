@@ -197,8 +197,7 @@ int king_vul(position_t *p, color_t c, square_t sq, king_ori_t bdir) {
   return 0;
 }
 
-void mark_laser_path(position_t *p, char * laser_map, color_t c,
-                     char mark_mask) {
+void mark_laser_path(position_t *p, bool * laser_map, color_t c) {
   position_t np = *p;
 
   // Fire laser, recording in laser_map
@@ -206,12 +205,12 @@ void mark_laser_path(position_t *p, char * laser_map, color_t c,
   int bdir = ori_of(np.board[sq]);
 
   assert(ptype_of(np.board[sq]) == KING);
-  laser_map[sq] |= mark_mask;
+  laser_map[sq] = true;
 
 
   while (true) {
     sq += beam_of(bdir);
-    laser_map[sq] |= mark_mask;
+    laser_map[sq] = true;
     assert(sq < ARR_SIZE && sq >= 0);
 
     switch (ptype_of(p->board[sq])) {
@@ -240,110 +239,103 @@ void set_square_validity() {
 
 }
 
-int mobility(position_t *p, color_t color) {
-  color_t c = opp_color(color);
-  char laser_map[ARR_SIZE];
+// int mobility(position_t *p, color_t color) {
+//   color_t c = opp_color(color);
+//   bool laser_map[ARR_SIZE];
 
-  for (int i = 0; i < ARR_SIZE; ++i) {
-    laser_map[i] = 4;   // Invalid square
-  }
+//   for (int i = 0; i < ARR_SIZE; ++i) {
+//     laser_map[i] = 4;   // Invalid square
+//   }
 
-  for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-      laser_map[square_of(f, r)] = 0;
-    }
-  }
+//   for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
+//     for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
+//       laser_map[square_of(f, r)] = 0;
+//     }
+//   }
 
-  mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
+//   mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
 
-  sortable_move_t lst[MAX_NUM_MOVES];
-  int save_ply = p->ply;
-  p->ply = c;  // fake out generate_all as to whose turn it is
-  int num_moves = generate_all(p, lst, true);
-  p->ply = save_ply;  // restore
+//   sortable_move_t lst[MAX_NUM_MOVES];
+//   int save_ply = p->ply;
+//   p->ply = c;  // fake out generate_all as to whose turn it is
+//   int num_moves = generate_all(p, lst, true);
+//   p->ply = save_ply;  // restore
 
-  for (int i = 0; i < num_moves; ++i) {
-    if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
-        (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
-      // move can't affect path of laser
-      continue;
-    }
-    mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
-  }
+//   for (int i = 0; i < num_moves; ++i) {
+//     if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
+//         (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
+//       // move can't affect path of laser
+//       continue;
+//     }
+//     mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+//   }
 
-  // mobility = # safe squares around enemy king
+//   // mobility = # safe squares around enemy king
 
-  square_t king_sq = p->king_locs[color];
-  assert(ptype_of(p->board[king_sq]) == KING);
-  assert(color_of(p->board[king_sq]) == color);
+//   square_t king_sq = p->king_locs[color];
+//   assert(ptype_of(p->board[king_sq]) == KING);
+//   assert(color_of(p->board[king_sq]) == color);
 
-  int mobility = 0;
-  if (laser_map[king_sq] == 0) {
-    mobility++;
-  }
-  for (int d = 0; d < 8; ++d) {
-    square_t sq = king_sq + dir_of(d);
-    if (laser_map[sq] == 0) {
-      mobility++;
-    }
-  }
-  return mobility;
-}
+//   int mobility = 0;
+//   if (laser_map[king_sq] == 0) {
+//     mobility++;
+//   }
+//   for (int d = 0; d < 8; ++d) {
+//     square_t sq = king_sq + dir_of(d);
+//     if (laser_map[sq] == 0) {
+//       mobility++;
+//     }
+//   }
+//   return mobility;
+// }
 
-int squares_attackable(position_t *p, color_t c) {
-  char laser_map[ARR_SIZE];
+// int squares_attackable(position_t *p, color_t c) {
+//   bool laser_map[ARR_SIZE];
 
-  for (int i = 0; i < ARR_SIZE; ++i)
-    laser_map[i] = 4;   // Invalid square
+//   for (int i = 0; i < ARR_SIZE; ++i)
+//     laser_map[i] = 4;   // Invalid square
 
-  for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-      laser_map[square_of(f, r)] = 0;
-    }
-  }
+//   for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
+//     for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
+//       laser_map[square_of(f, r)] = 0;
+//     }
+//   }
 
-  mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
+//   mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
 
-  sortable_move_t lst[MAX_NUM_MOVES];
-  int save_ply = p->ply;
-  p->ply = c;  // fake out generate_all as to whose turn it is
-  int num_moves = generate_all(p, lst, true);
-  p->ply = save_ply;  // restore
+//   sortable_move_t lst[MAX_NUM_MOVES];
+//   int save_ply = p->ply;
+//   p->ply = c;  // fake out generate_all as to whose turn it is
+//   int num_moves = generate_all(p, lst, true);
+//   p->ply = save_ply;  // restore
 
-  for (int i = 0; i < num_moves; ++i) {
-    if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
-        (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
-      // move can't affect path of laser
-      continue;
-    }
-    mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
-  }
+//   for (int i = 0; i < num_moves; ++i) {
+//     if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
+//         (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
+//       // move can't affect path of laser
+//       continue;
+//     }
+//     mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
+//   }
 
-  int attackable = 0;
-  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
-      if (laser_map[square_of(f, r)] != 0) {
-        attackable++;
-      }
-    }
-  }
-  return attackable;
-}
+//   int attackable = 0;
+//   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
+//     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
+//       if (laser_map[square_of(f, r)] != 0) {
+//         attackable++;
+//       }
+//     }
+//   }
+//   return attackable;
+// }
 
 int h_squares_attackable(position_t *p, color_t c) {
-  char laser_map[ARR_SIZE];
-
-  for (int i = 0; i < ARR_SIZE; ++i) {
-    laser_map[i] = 4;   // Invalid square
+  bool laser_map[ARR_SIZE];
+  for (int i = 0; i < ARR_SIZE; i++) {
+    laser_map[i] = false;
   }
 
-  for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-      laser_map[square_of(f, r)] = 0;
-    }
-  }
-
-  mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
+  mark_laser_path(p, laser_map, c);  // 1 = path of laser with no moves
 
   // Verified: This code currently doesn't do anything new.
   // sortable_move_t lst[MAX_NUM_MOVES];
@@ -371,7 +363,7 @@ int h_squares_attackable(position_t *p, color_t c) {
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t sq = square_of(f, r);
-      if (laser_map[sq] != 0) {
+      if (laser_map[sq]) {
         h_attackable += h_dist(sq, o_king_sq);
       }
     }
