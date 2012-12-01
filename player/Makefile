@@ -6,7 +6,7 @@ OBJ := $(addsuffix .o, $(basename $(SRC)))
 CXXFLAGS := -c -Wall
 TEST_DIR := ../tests/
 
-TEST_CONFIG_FILE := basic_old_new
+TEST_CONFIG_FILE := basic_old_new_timed
 
 DEPTH := 6
 
@@ -25,18 +25,18 @@ endif
 
 all: clean leiserchess
 
-autotest: leiserchess runautotest
+autotest: runautotest
 
 elo:
 	$(TEST_DIR)pgnrate.tcl -anchor newDepth3 -elo 3000 $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
 runautotest:
-	rm $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
+#	rm $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 	java -jar $(TEST_DIR)lauto.jar $(TEST_DIR)$(TEST_CONFIG_FILE)
 	echo "Done"
 	grep -i "Illegal" $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
-time: createinput all
+time: createinput
 	perf stat ./leiserchess < input.txt
 
 createinput:

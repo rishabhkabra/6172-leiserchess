@@ -28,5 +28,17 @@ int main() {
   }
   std::cout<<"};\n";
 
+
+  std::cout<<"\nunsigned char square[10][10] = {\n\t";
+  for (int f = 0; f < 10; f++) {
+    std::cout<<"{";
+    for (int r = 0; r < 10; r++) {
+      printf("'\\x%x', ", 12 * (1 + f) + 1 + r);
+    }
+    std::cout<<"}\n";
+  }
+  std::cout<<"};\n";
+
+
   return 0;
 }

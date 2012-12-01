@@ -12,5 +12,5 @@ invoke = ../player/leiserchess
 depth = 3
 
 player = oldDepth3
-invoke = ../player/leiserchess_old
+invoke = ../player/beta1/b1_r1
 depth = 3
