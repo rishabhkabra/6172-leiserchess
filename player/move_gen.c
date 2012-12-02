@@ -99,6 +99,34 @@ char *nesw_to_str[NUM_ORIENTATION] = {"north", "east", "south", "west"};
 static uint64_t   zob[ARR_SIZE][1<<PIECE_SIZE];
 static uint64_t   zob_color;
 
+static inline void check_bit_row_and_column(position_t * p) {
+  for (int i = 0; i < BOARD_WIDTH; i++) {
+    uint16_t column = 0;
+    for (int j = 0; j < BOARD_WIDTH; j++) {
+      bool col_value = (p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0;
+      if (col_value) {
+        column++;
+      }
+      column = column << 1;
+    }
+    column = column << 5;
+    assert(p->bit_rows[i] == column);
+  }
+
+  for (int i = 0; i < BOARD_WIDTH; i++) {
+    for (int j = 0; j < BOARD_WIDTH; j++) {
+      assert(ptype_of(p->board[square_of(i,j)]) != INVALID);
+      if (ptype_of(p->board[square_of(i,j)]) == EMPTY) {
+        assert((p->bit_rows[i] & (1 << (BITS_PER_VECTOR - j - 1))) == 0);
+        assert((p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) == 0);
+      } else {
+        assert((p->bit_rows[i] & (1 << (BITS_PER_VECTOR - j - 1))) != 0);
+        assert((p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0);
+      }
+    }
+  }
+}
+
 // Zobrist
 uint64_t compute_zob_key(position_t *p) {
   uint64_t key = 0;
@@ -372,6 +400,22 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
         }
       }
     }
+
+    assert(ptype_of(from_piece) == PAWN || ptype_of(from_piece) == KING);
+    assert(ptype_of(to_piece) != INVALID);
+    if (ptype_of(to_piece) == EMPTY) {
+      rnk_t from_r = rnk_of(from_sq);
+      rnk_t to_r = rnk_of(to_sq);
+      fil_t from_f = fil_of(from_sq);
+      fil_t to_f = fil_of(to_sq);
+      next->bit_columns[from_r] &= ~(1 << (BITS_PER_VECTOR - from_f - 1)); // set from_r'th column's from_f'th bit to 0. bitmask needed is all ones except f'th bit.
+      next->bit_rows[from_f] &= ~(1 << (BITS_PER_VECTOR - from_r - 1)); // set from_f'th row's from_r'th bit to 0
+      next->bit_columns[to_r] |= 1 << (BITS_PER_VECTOR - to_f - 1); // set to_r'th column's to_f'th bit to 1 
+      next->bit_rows[to_f] |= 1 << (BITS_PER_VECTOR - to_r - 1); // set to_f'th row's to_r'th bit to 1
+    }
+    //std::cout<<"\nChecking after piece move.";
+    //check_bit_row_and_column(next);
+
     // Up
   } else {  // rotation
 
@@ -380,6 +424,8 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     set_ori(&from_piece, rot + orientation_of(from_piece));  // rotate from_piece
     next->board[from_sq] = from_piece;  // place rotated piece on board
     next->key ^= zob[from_sq][from_piece];              // ... and in hash
+    //std::cout<<"\nChecking after piece rotation.";    
+    //check_bit_row_and_column(next);
   }
 
   // Increment ply
@@ -392,7 +438,6 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     display(next);
   })
 }
-
 
 // returns square of piece to be removed from board or 0
 square_t fire(position_t *p) {
@@ -435,6 +480,7 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
 
   low_level_make_move(previous, next, mv);
 
+  //std::cout<<"\nMove "<<ptype_of(previous->board[from_square(mv)])<<" from "<<from_square(mv)<<" to "<<to_square(mv);
   square_t victim_sq = fire(next);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
@@ -455,8 +501,18 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
   } else {  // we definitely hit something with laser
     next->victim = next->board[victim_sq];
     next->key ^= zob[victim_sq][next->victim];   // remove from board
-    next->board[victim_sq] = 0;
+    next->board[victim_sq] = 0;  
     next->key ^= zob[victim_sq][0];
+
+    assert(ptype_of(next->victim) == PAWN || ptype_of(next->victim) == KING);
+    rnk_t r = rnk_of(victim_sq);
+    fil_t f = fil_of(victim_sq);
+    //assert(r >= 0 && r < BOARD_WIDTH);
+    //assert(f >= 0 && f < BOARD_WIDTH);
+
+    next->bit_columns[r] &= ~(1 << (BITS_PER_VECTOR - f - 1)); // set r'th column's f'th bit to 0. bitmask needed is all ones except f'th bit.
+    next->bit_rows[f] &= ~(1 << (BITS_PER_VECTOR - r - 1)); // set f'th row's r'th bit to 0
+    
     color_t victim_color = color_of(next->victim);
     if (ptype_of(next->victim)) {
       for (int i = 0; i < PAWNS_COUNT; i++) {
@@ -466,6 +522,9 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
         }
       }
     }
+    //std::cout<<"\nChecking after piece death. Victim: "<<ptype_of(next->victim)<<" at location ("<<((int)f)<<", "<<((int)r)<<")";
+    //check_bit_row_and_column(next);
+
     assert(next->key == compute_zob_key(next));
 
     WHEN_DEBUG_VERBOSE({

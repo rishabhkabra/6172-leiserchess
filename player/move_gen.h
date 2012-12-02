@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <iostream>
 #include "util.h"
 
 #define MAX_NUM_MOVES 100      // real number = 7 x (8 + 3) + 1 x (8 + 4) = 89
@@ -154,10 +155,11 @@ typedef struct position {
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
   square_t     pawns_locs[2][PAWNS_COUNT]; // Locations of the pawns
-  // uint16_t     column_pawns[2][BOARD_WIDTH];
-  // uint16_t     row_pawn[2][BOARD_WIDTH];
+  uint16_t     bit_columns[BOARD_WIDTH];
+  uint16_t     bit_rows[BOARD_WIDTH];
 } position_t;
 
+#define BITS_PER_VECTOR 16
 
 // Function prototypes
 char * color_to_str(color_t c);
