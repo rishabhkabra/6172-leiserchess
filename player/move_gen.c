@@ -304,7 +304,7 @@ int generate_all_old(position_t *p, sortable_move_t *sortable_move_list,
   return move_count;
 }
 
-inline int generate_single_move(ptype_t typ, square_t sq, int move_count, position_t *p, sortable_move_t *sortable_move_list) {
+inline int generate_single_piece_move(ptype_t typ, square_t sq, int move_count, position_t *p, sortable_move_t *sortable_move_list) {
   assert(typ != INVALID);
   // directions
   for (int d = 0; d < 8; d++) {
@@ -340,7 +340,7 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
   int move_count = 0;
   // Generate kings move
   square_t sq = p->king_locs[ctm];
-  move_count = generate_single_move(KING, sq, move_count, p, sortable_move_list);
+  move_count = generate_single_piece_move(KING, sq, move_count, p, sortable_move_list);
   assert(move_count < MAX_NUM_MOVES);
   sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, sq); // Also generate null move
   for (int i = 0; i < PAWNS_COUNT; i++) {
@@ -348,7 +348,7 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
     if (!sq) {
       continue;
     }
-    move_count = generate_single_move(PAWN, sq, move_count, p, sortable_move_list);
+    move_count = generate_single_piece_move(PAWN, sq, move_count, p, sortable_move_list);
   }
   return move_count;
 }
@@ -496,7 +496,7 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     set_ori(&from_piece, rot + orientation_of(from_piece));  // rotate from_piece
     next->board[from_sq] = from_piece;  // place rotated piece on board
     next->key ^= zob[from_sq][from_piece];              // ... and in hash
-    //std::cout<<"\nChecking after piece rotation.";    
+    //std::cout<<"\nChecking after piece rotation.";
     //check_bit_row_and_column(next);
   }
 
@@ -536,11 +536,13 @@ square_t fire(position_t *p) {
           //std::cout<<"\nNo piece in range.";
           return 0;
         }
-        hit_pos = 1;
-        while (!(fire_range & 32768)) {
-          hit_pos++;
-          fire_range <<= 1;
-        }
+        hit_pos = __builtin_clz(fire_range) - 15;
+        // hit_pos = 1;
+        // while (!(fire_range & 32768)) {
+        //   hit_pos++;
+        //   fire_range <<= 1;
+        // }
+        // assert(hit_pos == hit_pos2);
         assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
         r += hit_pos;
         sq += hit_pos;
@@ -559,11 +561,12 @@ square_t fire(position_t *p) {
           //std::cout<<"\nNo piece in range.";
           return 0;
         }
-        hit_pos = 1;
-        while (!(fire_range & 32768)) {
-          hit_pos++;
-          fire_range <<= 1;
-        }
+        hit_pos = __builtin_clz(fire_range) - 15;
+        // hit_pos = 1;
+        // while (!(fire_range & 32768)) {
+        //   hit_pos++;
+        //   fire_range <<= 1;
+        // }
         // hit_pos now gives the difference in squares between previous piece and next hit piece
         assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
         f += hit_pos;
@@ -583,11 +586,13 @@ square_t fire(position_t *p) {
           //std::cout<<"\nNo piece in range.";
           return 0;
         }
-        hit_pos = 1;
-        while (!(fire_range & 1)) {
-          hit_pos++;
-          fire_range >>= 1;
-        }
+        hit_pos = __builtin_ctz(fire_range) + 1;
+        // hit_pos = 1;
+        // while (!(fire_range & 1)) {
+        //   hit_pos++;
+        //   fire_range >>= 1;
+        // }
+        // assert(hit_pos2 == hit_pos);
         assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
         r -= hit_pos;
         sq -= hit_pos;
@@ -606,11 +611,12 @@ square_t fire(position_t *p) {
           //std::cout<<"\nNo piece in range.";
           return 0;
         }
-        hit_pos = 1;
-        while (!(fire_range & 1)) {
-          hit_pos++;
-          fire_range >>= 1;
-        }
+        hit_pos = __builtin_ctz(fire_range) + 1;
+        // hit_pos = 1;
+        // while (!(fire_range & 1)) {
+        //   hit_pos++;
+        //   fire_range >>= 1;
+        // }
         assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
         f -= hit_pos;
         sq -= ARR_WIDTH * hit_pos;
@@ -636,7 +642,7 @@ square_t fire(position_t *p) {
       return sq;
     }
     //std::cout<<"\nLaser reflected. Continuing.";
-  } 
+  }
 }
 
 square_t fire_old(position_t *p) {
