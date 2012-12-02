@@ -95,23 +95,23 @@ typedef enum {
 //----------------------------------------------------------------------
 // Orientations
 
-#define NUM_ORI 4
-#define ORI_SHIFT 0
-#define ORI_MASK (NUM_ORI - 1)
+#define NUM_ORIENTATION 4
+#define ORIENTATION_SHIFT 0
+#define ORIENTATION_MASK (NUM_ORIENTATION - 1)
 
 typedef enum {
   NN,
   EE,
   SS,
   WW
-} king_ori_t;
+} king_orientation_t;
 
 typedef enum {
   NW,
   NE,
   SE,
   SW
-} pawn_ori_t;
+} pawn_orientation_t;
 
 //----------------------------------------------------------------------
 // moves
@@ -172,7 +172,7 @@ inline ptype_t ptype_of(piece_t x) {
 }
 
 void set_ptype(piece_t *x, ptype_t pt);
-// int ori_of(piece_t x);
+// int orientation_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
 //square_t square_of(fil_t f, rnk_t r);
@@ -266,8 +266,8 @@ inline move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) 
          ((to_sq & TO_MASK) << TO_SHIFT);
 }
 
-inline int ori_of(piece_t x) {
-  return (x >> ORI_SHIFT) & ORI_MASK;
+inline int orientation_of(piece_t x) {
+  return (x >> ORIENTATION_SHIFT) & ORIENTATION_MASK;
 }
 
 inline ptype_t ptype_mv_of(move_t mv) {
@@ -279,7 +279,7 @@ rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
 int dir_of(int i);
 int beam_of(int direction);
-int reflect_of(int beam_dir, int pawn_ori);
+int reflect_of(int beam_dir, int pawn_orientation);
 // square_t from_square(move_t mv);
 // square_t to_square(move_t mv);
 // rot_t rot_of(move_t mv);

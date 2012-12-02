@@ -79,19 +79,19 @@ void set_ptype(piece_t *x, ptype_t pt) {
 }
 
 void set_ori(piece_t *x, int ori) {
-  *x = ((ori & ORI_MASK) << ORI_SHIFT) |
-        (*x & ~(ORI_MASK << ORI_SHIFT));
+  *x = ((ori & ORIENTATION_MASK) << ORIENTATION_SHIFT) |
+        (*x & ~(ORIENTATION_MASK << ORIENTATION_SHIFT));
 }
 
 // King orientations
-char *king_ori_to_rep[2][NUM_ORI] = { { "NN", "EE", "SS", "WW" },
+char *king_orientation_to_rep[2][NUM_ORIENTATION] = { { "NN", "EE", "SS", "WW" },
                                       { "nn", "ee", "ss", "ww" } };
 
 // Pawn orientations
-char *pawn_ori_to_rep[2][NUM_ORI] = { { "NW", "NE", "SE", "SW" },
+char *pawn_orientation_to_rep[2][NUM_ORIENTATION] = { { "NW", "NE", "SE", "SW" },
                                       { "nw", "ne", "se", "sw" } };
 
-char *nesw_to_str[NUM_ORI] = {"north", "east", "south", "west"};
+char *nesw_to_str[NUM_ORIENTATION] = {"north", "east", "south", "west"};
 
 
 //----------------------------------------------------------------------
@@ -156,16 +156,16 @@ int dir_of(int i) {
 
 
 // directions for laser: NN, EE, SS, WW
-static int beam[NUM_ORI] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
+static int beam[NUM_ORIENTATION] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
 
 int beam_of(int direction) {
-  assert(direction >= 0 && direction < NUM_ORI);
+  assert(direction >= 0 && direction < NUM_ORIENTATION);
   return beam[direction];
 }
 
 // reflect[beam_dir][pawn_orientation]
 // -1 indicates back of Pawn
-int reflect[NUM_ORI][NUM_ORI] = {
+int reflect[NUM_ORIENTATION][NUM_ORIENTATION] = {
 //  NW  NE  SE  SW
   { -1, -1, EE, WW},   // NN
   { NN, -1, -1, SS},   // EE
@@ -173,10 +173,10 @@ int reflect[NUM_ORI][NUM_ORI] = {
   { -1, NN, SS, -1 }   // WW
 };
 
-int reflect_of(int beam_dir, int pawn_ori) {
-  assert(beam_dir >= 0 && beam_dir < NUM_ORI);
-  assert(pawn_ori >= 0 && pawn_ori < NUM_ORI);
-  return reflect[beam_dir][pawn_ori];
+int reflect_of(int beam_dir, int pawn_orientation) {
+  assert(beam_dir >= 0 && beam_dir < NUM_ORIENTATION);
+  assert(pawn_orientation >= 0 && pawn_orientation < NUM_ORIENTATION);
+  return reflect[beam_dir][pawn_orientation];
 }
 
 // converts a move to string notation for FEN
@@ -449,7 +449,7 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
 
     // remove from_piece from from_sq in hash
     next->key ^= zob[from_sq][from_piece];
-    set_ori(&from_piece, rot + ori_of(from_piece));  // rotate from_piece
+    set_ori(&from_piece, rot + orientation_of(from_piece));  // rotate from_piece
     next->board[from_sq] = from_piece;  // place rotated piece on board
     next->key ^= zob[from_sq][from_piece];              // ... and in hash
   }
@@ -470,7 +470,7 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
 square_t fire(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
   square_t sq = p->king_locs[fctm];
-  int bdir = ori_of(p->board[sq]);
+  int bdir = orientation_of(p->board[sq]);
 
   assert(ptype_of(p->board[ p->king_locs[fctm] ]) == KING);
 
@@ -482,7 +482,7 @@ square_t fire(position_t *p) {
      case EMPTY:  // empty square
       break;
      case PAWN:  // Pawn
-      bdir = reflect_of(bdir, ori_of(p->board[sq]));
+      bdir = reflect_of(bdir, orientation_of(p->board[sq]));
       if (bdir < 0) {  // Hit back of Pawn
         return sq;
       }
@@ -638,16 +638,16 @@ void display(position_t *p) {
         continue;
       }
 
-      int ori = ori_of(p->board[sq]);  // orientation
+      int ori = orientation_of(p->board[sq]);  // orientation
       color_t c = color_of(p->board[sq]);
 
       if (ptype_of(p->board[sq]) == KING) {
-        printf(" %2s", king_ori_to_rep[c][ori]);
+        printf(" %2s", king_orientation_to_rep[c][ori]);
         continue;
       }
 
       if (ptype_of(p->board[sq]) == PAWN) {
-        printf(" %2s", pawn_ori_to_rep[c][ori]);
+        printf(" %2s", pawn_orientation_to_rep[c][ori]);
         continue;
       }
     }
