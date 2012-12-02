@@ -114,15 +114,15 @@ static inline void check_bit_row_and_column(position_t * p) {
     assert(p->bit_files[i] == column);
   }
 
-  for (int i = 0; i < BOARD_WIDTH; i++) {
-    for (int j = 0; j < BOARD_WIDTH; j++) {
-      assert(ptype_of(p->board[square_of(i,j)]) != INVALID);
-      if (ptype_of(p->board[square_of(i,j)]) == EMPTY) {
-        assert((p->bit_files[i] & (1 << (BITS_PER_VECTOR - j - 1))) == 0);
-        assert((p->bit_ranks[j] & (1 << (BITS_PER_VECTOR - i - 1))) == 0);
+  for (int f = 0; f < BOARD_WIDTH; f++) {
+    for (int r = 0; r < BOARD_WIDTH; r++) {
+      assert(ptype_of(p->board[square_of(f,r)]) != INVALID);
+      if (ptype_of(p->board[square_of(f,r)]) == EMPTY) {
+        assert((p->bit_files[f] & (1 << (BITS_PER_VECTOR - r - 1))) == 0);
+        assert((p->bit_ranks[r] & (1 << (BITS_PER_VECTOR - f - 1))) == 0);
       } else {
-        assert((p->bit_files[i] & (1 << (BITS_PER_VECTOR - j - 1))) != 0);
-        assert((p->bit_ranks[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0);
+        assert((p->bit_files[f] & (1 << (BITS_PER_VECTOR - r - 1))) != 0);
+        assert((p->bit_ranks[r] & (1 << (BITS_PER_VECTOR - f - 1))) != 0);
       }
     }
   }
@@ -195,10 +195,10 @@ int beam_of(int direction) {
 // -1 indicates back of Pawn
 int reflect[NUM_ORIENTATION][NUM_ORIENTATION] = {
 //  NW  NE  SE  SW
-  { -1, -1, EE, WW},   // NN
-  { NN, -1, -1, SS},   // EE
-  { WW, EE, -1, -1 },  // SS
-  { -1, NN, SS, -1 }   // WW
+  { -1, -1, EE, WW},   // NN = beam_dir 0
+  { NN, -1, -1, SS},   // EE = beam_dir 1
+  { WW, EE, -1, -1 },  // SS = beam_dir 2
+  { -1, NN, SS, -1 }   // WW = beam_dir 3
 };
 
 int reflect_of(int beam_dir, int pawn_orientation) {
@@ -515,12 +515,135 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
 square_t fire(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
   square_t sq = p->king_locs[fctm];
+  rnk_t r = rnk_of(sq);
+  fil_t f = fil_of(sq);
+  int bdir = orientation_of(p->board[sq]); // bdir: {0,1,2,3} -> {+1 sq, +12 sq, -1 sq, -12 sq}
+  // +1, -1 => change in file
+  // +12, -12 => corresponding change in rank
+  uint16_t fire_range;
+  int shift;
+  int hit_pos;
+  piece_t hit_piece;
+  while(true) {
+    switch(bdir) {
+      case 0: // laser moves through increasing rank, constant file
+        //std::cout<<"\n\nFiring through constant file: "<<(int(f))<<". Increasing rank starting at: "<<(int(r))<<". Start square: "<<sq;
+        fire_range = p->bit_files[f];
+        shift = r + 1; // left shift. find LS1.
+        assert(shift >= 1 && shift <= 10);
+        fire_range <<= shift;
+        if (fire_range == 0) {
+          //std::cout<<"\nNo piece in range.";
+          return 0;
+        }
+        hit_pos = 1;
+        while (!(fire_range & 32768)) {
+          hit_pos++;
+          fire_range <<= 1;
+        }
+        assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
+        r += hit_pos;
+        sq += hit_pos;
+        //std::cout<<"\nLaser moves "<<hit_pos<<" steps and hits square: "<<sq;
+        assert(sq >= 0);
+        assert(sq < ARR_SIZE);
+        assert(square_of(f,r) == sq);
+        break;
+      case 1: // laser moves through increasing file, constant rank
+        //std::cout<<"\n\nFiring through increasing file starting at: "<<(int(f))<<". Constant rank: "<<(int(r))<<". Start square: "<<sq;
+        fire_range = p->bit_ranks[r];
+        shift = f + 1; // range: {1,...,10}. left shift. find MS1.
+        assert(shift >= 1 && shift <= 10);
+        fire_range <<= shift;
+        if (fire_range == 0) {
+          //std::cout<<"\nNo piece in range.";
+          return 0;
+        }
+        hit_pos = 1;
+        while (!(fire_range & 32768)) {
+          hit_pos++;
+          fire_range <<= 1;
+        }
+        // hit_pos now gives the difference in squares between previous piece and next hit piece
+        assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
+        f += hit_pos;
+        sq += ARR_WIDTH * hit_pos;
+        //std::cout<<"\nLaser moves "<<hit_pos<<" steps and hits square: "<<sq;
+        assert(sq >= 0);
+        assert(sq < ARR_SIZE);
+        assert(square_of(f,r) == sq);
+        break;
+      case 2: // laser moves through decreasing rank, constant file
+        //std::cout<<"\n\nFiring through constant file: "<<(int(f))<<". Decreasing rank starting at: "<<(int(r))<<". Start square: "<<sq;
+        fire_range = p->bit_files[f];
+        shift = BOARD_WIDTH - r; // right shift. find MS1.
+        assert(shift >= 1 && shift <= 10);
+        fire_range >>= shift + (BITS_PER_VECTOR - BOARD_WIDTH);
+        if (fire_range == 0) {
+          //std::cout<<"\nNo piece in range.";
+          return 0;
+        }
+        hit_pos = 1;
+        while (!(fire_range & 1)) {
+          hit_pos++;
+          fire_range >>= 1;
+        }
+        assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
+        r -= hit_pos;
+        sq -= hit_pos;
+        //std::cout<<"\nLaser moves "<<hit_pos<<" steps and hits square: "<<sq;
+        assert(sq >= 0);
+        assert(sq < ARR_SIZE);
+        assert(square_of(f,r) == sq);
+        break;
+      case 3: // laser moves through decreasing file, constant rank
+        //std::cout<<"\n\nFiring through decreasing file starting at: "<<(int(f))<<". Constant rank: "<<(int(r))<<". Start square: "<<sq;
+        fire_range = p->bit_ranks[r];
+        shift = BOARD_WIDTH - f; // range: {1,...,10}. right shift. find LS1.
+        assert(shift >= 1 && shift <= 10);
+        fire_range >>= shift + (BITS_PER_VECTOR - BOARD_WIDTH);
+        if (fire_range == 0) {
+          //std::cout<<"\nNo piece in range.";
+          return 0;
+        }
+        hit_pos = 1;
+        while (!(fire_range & 1)) {
+          hit_pos++;
+          fire_range >>= 1;
+        }
+        assert(hit_pos >= 0 && hit_pos < BOARD_WIDTH);
+        f -= hit_pos;
+        sq -= ARR_WIDTH * hit_pos;
+        //std::cout<<"\nLaser moves "<<hit_pos<<" steps and hits square: "<<sq;
+        assert(sq >= 0);
+        assert(sq < ARR_SIZE);
+        assert(square_of(f,r) == sq);
+        break;
+      default:
+        assert(false);
+    }
+    hit_piece = p->board[sq];
+    if (ptype_of(hit_piece) == KING) {
+      //std::cout<<"\nHit king. Returning.";
+      return sq;
+    }
+    //std::cout<<"\nHit pawn with orientation: "<<orientation_of(hit_piece);
+    //std::cout<<"\nBeam direction changed from "<<bdir;
+    bdir = reflect_of(bdir, orientation_of(hit_piece));
+    //std::cout<<" to "<<bdir;
+    if (bdir < 0) {
+      //std::cout<<"\nUnshielded pawn. Returning.";
+      return sq;
+    }
+    //std::cout<<"\nLaser reflected. Continuing.";
+  } 
+}
+
+square_t fire_old(position_t *p) {
+  color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
+  square_t sq = p->king_locs[fctm];
   int bdir = orientation_of(p->board[sq]);
-  /*
-  while() {
-    
-  }
-  */
+
   assert(ptype_of(p->board[ p->king_locs[fctm] ]) == KING);
 
   while (true) {
@@ -549,6 +672,13 @@ square_t fire(position_t *p) {
   }
 }
 
+square_t fire_test(position_t *p) {
+  square_t fnew = fire(p);
+  square_t fold = fire_old(p);
+  //std::cout<<"\nOld fire returned: "<<fold<<". New fire: "<<fnew;
+  assert(fnew == fold);
+  return fnew;
+}
 
 // return 0 or victim piece or KO (== -1)
 piece_t make_move(position_t *previous, position_t *next, move_t mv) {
