@@ -104,25 +104,25 @@ static inline void check_bit_row_and_column(position_t * p) {
   for (int i = 0; i < BOARD_WIDTH; i++) {
     uint16_t column = 0;
     for (int j = 0; j < BOARD_WIDTH; j++) {
-      bool col_value = (p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0;
+      bool col_value = (p->bit_ranks[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0;
       if (col_value) {
         column++;
       }
       column = column << 1;
     }
     column = column << 5;
-    assert(p->bit_rows[i] == column);
+    assert(p->bit_files[i] == column);
   }
 
   for (int i = 0; i < BOARD_WIDTH; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       assert(ptype_of(p->board[square_of(i,j)]) != INVALID);
       if (ptype_of(p->board[square_of(i,j)]) == EMPTY) {
-        assert((p->bit_rows[i] & (1 << (BITS_PER_VECTOR - j - 1))) == 0);
-        assert((p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) == 0);
+        assert((p->bit_files[i] & (1 << (BITS_PER_VECTOR - j - 1))) == 0);
+        assert((p->bit_ranks[j] & (1 << (BITS_PER_VECTOR - i - 1))) == 0);
       } else {
-        assert((p->bit_rows[i] & (1 << (BITS_PER_VECTOR - j - 1))) != 0);
-        assert((p->bit_columns[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0);
+        assert((p->bit_files[i] & (1 << (BITS_PER_VECTOR - j - 1))) != 0);
+        assert((p->bit_ranks[j] & (1 << (BITS_PER_VECTOR - i - 1))) != 0);
       }
     }
   }
@@ -480,10 +480,10 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
       rnk_t to_r = rnk_of(to_sq);
       fil_t from_f = fil_of(from_sq);
       fil_t to_f = fil_of(to_sq);
-      next->bit_columns[from_r] &= ~(1 << (BITS_PER_VECTOR - from_f - 1)); // set from_r'th column's from_f'th bit to 0. bitmask needed is all ones except f'th bit.
-      next->bit_rows[from_f] &= ~(1 << (BITS_PER_VECTOR - from_r - 1)); // set from_f'th row's from_r'th bit to 0
-      next->bit_columns[to_r] |= 1 << (BITS_PER_VECTOR - to_f - 1); // set to_r'th column's to_f'th bit to 1 
-      next->bit_rows[to_f] |= 1 << (BITS_PER_VECTOR - to_r - 1); // set to_f'th row's to_r'th bit to 1
+      next->bit_ranks[from_r] &= ~(1 << (BITS_PER_VECTOR - from_f - 1)); // set from_r'th column's from_f'th bit to 0. bitmask needed is all ones except f'th bit.
+      next->bit_files[from_f] &= ~(1 << (BITS_PER_VECTOR - from_r - 1)); // set from_f'th row's from_r'th bit to 0
+      next->bit_ranks[to_r] |= 1 << (BITS_PER_VECTOR - to_f - 1); // set to_r'th column's to_f'th bit to 1 
+      next->bit_files[to_f] |= 1 << (BITS_PER_VECTOR - to_r - 1); // set to_f'th row's to_r'th bit to 1
     }
     //std::cout<<"\nChecking after piece move.";
     //check_bit_row_and_column(next);
@@ -516,7 +516,11 @@ square_t fire(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
   square_t sq = p->king_locs[fctm];
   int bdir = orientation_of(p->board[sq]);
-
+  /*
+  while() {
+    
+  }
+  */
   assert(ptype_of(p->board[ p->king_locs[fctm] ]) == KING);
 
   while (true) {
@@ -582,8 +586,8 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
     //assert(r >= 0 && r < BOARD_WIDTH);
     //assert(f >= 0 && f < BOARD_WIDTH);
 
-    next->bit_columns[r] &= ~(1 << (BITS_PER_VECTOR - f - 1)); // set r'th column's f'th bit to 0. bitmask needed is all ones except f'th bit.
-    next->bit_rows[f] &= ~(1 << (BITS_PER_VECTOR - r - 1)); // set f'th row's r'th bit to 0
+    next->bit_ranks[r] &= ~(1 << (BITS_PER_VECTOR - f - 1)); // set r'th column's f'th bit to 0. bitmask needed is all ones except f'th bit.
+    next->bit_files[f] &= ~(1 << (BITS_PER_VECTOR - r - 1)); // set f'th row's r'th bit to 0
     
     color_t victim_color = color_of(next->victim);
     if (ptype_of(next->victim)) {

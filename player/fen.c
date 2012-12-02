@@ -368,8 +368,8 @@ int fen_to_pos(position_t *p, char *fen) {
   }
 
   for (int i = 0; i < BOARD_WIDTH; i++) {
-    p->bit_columns[i] = 0;
-    p->bit_rows[i] = 0;
+    p->bit_ranks[i] = 0;
+    p->bit_files[i] = 0;
   }
 
   // King check
@@ -383,13 +383,13 @@ int fen_to_pos(position_t *p, char *fen) {
       if (typ == KING) {
         Kings[color_of(x)]++;
         p->king_locs[color_of(x)] = sq;
-        p->bit_rows[f] |= 1 << (BITS_PER_VECTOR - r - 1); // set f'th row's r'th bit to 1
-        p->bit_columns[r] |= 1 << (BITS_PER_VECTOR - f - 1); // set r'th column's f'th bit to 1
+        p->bit_files[f] |= 1 << (BITS_PER_VECTOR - r - 1); // set f'th row's r'th bit to 1
+        p->bit_ranks[r] |= 1 << (BITS_PER_VECTOR - f - 1); // set r'th column's f'th bit to 1
       } else if (typ == PAWN) {
         p->pawns_locs[color_of(x)][pawns_counter[color_of(x)]] = sq;
         pawns_counter[color_of(x)]++;
-        p->bit_rows[f] |= 1 << (BITS_PER_VECTOR - r - 1); // set f'th row's r'th bit to 1
-        p->bit_columns[r] |= 1 << (BITS_PER_VECTOR - f - 1); // set r'th column's f'th bit to 1
+        p->bit_files[f] |= 1 << (BITS_PER_VECTOR - r - 1); // set f'th row's r'th bit to 1
+        p->bit_ranks[r] |= 1 << (BITS_PER_VECTOR - f - 1); // set r'th column's f'th bit to 1
       }
     }
   }

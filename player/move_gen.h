@@ -155,8 +155,8 @@ typedef struct position {
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
   square_t     pawns_locs[2][PAWNS_COUNT]; // Locations of the pawns
-  uint16_t     bit_columns[BOARD_WIDTH];
-  uint16_t     bit_rows[BOARD_WIDTH];
+  uint16_t     bit_ranks[BOARD_WIDTH];
+  uint16_t     bit_files[BOARD_WIDTH];
 } position_t;
 
 #define BITS_PER_VECTOR 16
