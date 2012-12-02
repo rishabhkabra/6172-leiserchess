@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <algorithm>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -209,8 +210,9 @@ void move_to_str(move_t mv, char *buf) {
 }
 
 // Generate all moves from position p.  Returns number of moves.
-// strict currently ignored
-int generate_all(position_t *p, sortable_move_t *sortable_move_list,
+// strict currently ignored.
+// Noe being called anymore, for testing purposes.
+int generate_all_old(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict) {
   color_t ctm = color_to_move_of(p);
   int move_count = 0;
@@ -273,6 +275,76 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
 
   return move_count;
 }
+
+inline int generate_single_move(ptype_t typ, square_t sq, int move_count, position_t *p, sortable_move_t *sortable_move_list) {
+  assert(typ != INVALID);
+  // directions
+  for (int d = 0; d < 8; d++) {
+    int dest = sq + dir_of(d);
+    if (ptype_of(p->board[dest]) == INVALID) {
+      continue;    // illegal square
+    }
+
+    WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
+    WHEN_DEBUG_VERBOSE({
+      move_to_str(move_of(typ, 0, sq, dest), buf);
+      DEBUG_LOG(1, "Before: %s ", buf);
+    })
+    assert(move_count < MAX_NUM_MOVES);
+    sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+
+    WHEN_DEBUG_VERBOSE({
+      move_to_str(get_move(sortable_move_list[move_count-1]), buf);
+      DEBUG_LOG(1, "After: %s\n", buf);
+    })
+  }
+  // rotations - three directions possible
+  for (int rot = 1; rot < 4; ++rot) {
+    assert(move_count < MAX_NUM_MOVES);
+    sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
+  }
+  return move_count;
+}
+
+int generate_all(position_t *p, sortable_move_t *sortable_move_list,
+                 bool strict) {
+  color_t ctm = color_to_move_of(p);
+  int move_count = 0;
+  // Generate kings move
+  square_t sq = p->king_locs[ctm];
+  move_count = generate_single_move(KING, sq, move_count, p, sortable_move_list);
+  assert(move_count < MAX_NUM_MOVES);
+  sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, sq); // Also generate null move
+  for (int i = 0; i < PAWNS_COUNT; i++) {
+    sq = p->pawns_locs[ctm][i];
+    if (!sq) {
+      continue;
+    }
+    move_count = generate_single_move(PAWN, sq, move_count, p, sortable_move_list);
+  }
+  return move_count;
+}
+
+int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
+                 bool strict) {
+  sortable_move_t new_gen_list[MAX_NUM_MOVES];
+  for (int i = 0; i < MAX_NUM_MOVES; i++) {
+    sortable_move_list[i] = 0;
+    new_gen_list[i] = 0;
+  }
+  int move_count = generate_all_old(p, sortable_move_list, strict);
+  int move_count_new = generate_all(p, new_gen_list, strict);
+  assert(move_count == move_count_new);
+  std::sort(sortable_move_list, sortable_move_list + MAX_NUM_MOVES);
+  std::sort(new_gen_list, new_gen_list + MAX_NUM_MOVES);
+  std::reverse(sortable_move_list, sortable_move_list + MAX_NUM_MOVES);
+  std::reverse(new_gen_list, new_gen_list + MAX_NUM_MOVES);
+  for (int i = 0; i < MAX_NUM_MOVES; i++) {
+    assert(sortable_move_list[i] == new_gen_list[i]);
+  }
+  return move_count;
+}
+
 
 void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
   assert(mv != 0);
