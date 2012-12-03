@@ -199,45 +199,43 @@ int king_vul(position_t *p, color_t c, square_t sq, king_orientation_t bdir) {
 
 void mark_laser_path(position_t *p, bool * laser_map, color_t c) {
   position_t np = *p;
-
+  
   // Fire laser, recording in laser_map
   square_t sq = np.king_locs[c];
   int bdir = orientation_of(np.board[sq]);
-
+  
   assert(ptype_of(np.board[sq]) == KING);
   laser_map[sq] = true;
-
-
+  
+  
   while (true) {
     sq += beam_of(bdir);
     laser_map[sq] = true;
     assert(sq < ARR_SIZE && sq >= 0);
-
+    
     switch (ptype_of(p->board[sq])) {
-     case EMPTY:  // empty square
-      break;
-     case PAWN:  // Pawn
-      bdir = reflect_of(bdir, orientation_of(p->board[sq]));
-      if (bdir < 0) {  // Hit back of Pawn
+      case EMPTY:  // empty square
+        break;
+      case PAWN:  // Pawn
+        bdir = reflect_of(bdir, orientation_of(p->board[sq]));
+        if (bdir < 0) {  // Hit back of Pawn
+          return;
+        }
+        break;
+      case KING:  // King
+        return;  // sorry, game over my friend!
+        break;
+      case INVALID:  // Ran off edge of board
         return;
-      }
-      break;
-     case KING:  // King
-      return;  // sorry, game over my friend!
-      break;
-     case INVALID:  // Ran off edge of board
-      return;
-      break;
-     default:  // Shouldna happen, man!
-      assert(false);
-      break;
+        break;
+      default:  // Shouldna happen, man!
+        assert(false);
+        break;
+        
     }
   }
 }
 
-void set_square_validity() {
-
-}
 
 // int mobility(position_t *p, color_t color) {
 //   color_t c = opp_color(color);
@@ -330,45 +328,76 @@ void set_square_validity() {
 // }
 
 int h_squares_attackable(position_t *p, color_t c) {
+  position_t np = *p;
+  float h_attackable = 0;
+  square_t o_king_sq = p->king_locs[opp_color(c)];
+
+  // Fire laser, recording in laser_map
+  square_t sq = np.king_locs[c];
+  int bdir = orientation_of(np.board[sq]);
+  assert(ptype_of(np.board[sq]) == KING);
+  h_attackable += h_dist(sq, o_king_sq);  
+
+  while (true) {
+    sq += beam_of(bdir);
+    assert(sq < ARR_SIZE && sq >= 0);
+    
+    switch (ptype_of(p->board[sq])) {
+      case EMPTY:  // empty square
+        h_attackable += h_dist(sq, o_king_sq);  
+        break;
+      case PAWN:  // Pawn
+        h_attackable += h_dist(sq, o_king_sq);  
+        bdir = reflect_of(bdir, orientation_of(p->board[sq]));
+        if (bdir < 0) {  // Hit back of Pawn
+          return h_attackable;
+        }
+        break;
+      case KING:  // King
+        h_attackable += h_dist(sq, o_king_sq);  
+        return h_attackable;  // sorry, game over my friend!
+        break;
+      case INVALID:  // Ran off edge of board
+        return h_attackable;
+        break;
+      default:  // Shouldna happen, man!
+        assert(false);
+        break;
+    }
+  }
+}
+
+int h_squares_attackable_old(position_t *p, color_t c) {
   bool laser_map[ARR_SIZE];
   for (int i = 0; i < ARR_SIZE; i++) {
     laser_map[i] = false;
   }
-
+  
   mark_laser_path(p, laser_map, c);  // 1 = path of laser with no moves
-
-  // Verified: This code currently doesn't do anything new.
-  // sortable_move_t lst[MAX_NUM_MOVES];
-  // int save_ply = p->ply;
-  // p->ply = c;  // fake out generate_all as to whose turn it is
-  // // int num_moves = generate_all(p, lst, true);
-  // p->ply = save_ply;  // restore
-  // mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
-  // for (int i = 0; i < num_moves; ++i) {
-  //   if ((laser_map[from_square(get_move(lst[i]))] & 1) != 1 &&
-  //       (laser_map[to_square(get_move(lst[i]))] & 1) != 1) {
-  //     // move can't affect path of laser
-  //     continue;
-  //   }
-  // mark_laser_path(p, laser_map, c, 2);  // 2 = path of laser with move
-
-  //   break;
-  // }
-
+  
   square_t o_king_sq = p->king_locs[opp_color(c)];
   assert(ptype_of(p->board[o_king_sq]) == KING);
   assert(color_of(p->board[o_king_sq]) != c);
-
+  
   float h_attackable = 0;
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t sq = square_of(f, r);
       if (laser_map[sq]) {
-        h_attackable += h_dist(sq, o_king_sq);
+          h_attackable += h_dist(sq, o_king_sq);
       }
     }
   }
-  return h_attackable;
+  return h_attackable;  
+}
+
+int h_squares_attackable_test(position_t *p, color_t c) {
+  int hnew = h_squares_attackable(p, c);
+  int hold = h_squares_attackable_old(p, c);
+  if (hnew != hold) {
+    std::cout<<"\nh_squares_attackable_old: "<<hold<<". h_squares_attackable_new: "<<hnew;
+  }
+  return hnew;
 }
 
 // Unoptimized eval function for testing purpuses
