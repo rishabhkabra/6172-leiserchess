@@ -25,7 +25,8 @@
 
 #include <stdbool.h>
 
-#include "search.h"
+#include "./search.h"
+#include "./hdist_table.c"
 
 #define EV_SCORE_RATIO 100   // Ratio of ev_score_t values to score_t values
 
@@ -33,7 +34,7 @@
 #define PAWN_EV_VALUE (PAWN_VALUE*EV_SCORE_RATIO)
 
 // Harmonic-ish distance: 1/(|dx|+1) + 1/(|dy|+1)
-inline float h_dist(square_t a, square_t b) {
+inline float h_dist_old(square_t a, square_t b) {
   //  printf("a = %d, FIL(a) = %d, RNK(a) = %d\n", a, FIL(a), RNK(a));
   //  printf("b = %d, FIL(b) = %d, RNK(b) = %d\n", b, FIL(b), RNK(b));
   int delta_fil = abs(fil_of(a) - fil_of(b));
@@ -41,6 +42,11 @@ inline float h_dist(square_t a, square_t b) {
   float x = (1.0 / (delta_fil + 1)) + (1.0 / (delta_rnk + 1));
   //  printf("max_dist = %d\n\n", x);
   return x;
+}
+
+inline float h_dist(square_t a, square_t b) {
+  assert(((h_dist_old(a, b) + .001) >= hdist_table[a][b]) && (hdist_table[a][b] >= (h_dist_old(a, b)- .001)));
+  return hdist_table[a][b];
 }
 
 score_t eval(position_t *p, bool verbose);
