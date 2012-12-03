@@ -280,12 +280,31 @@ fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
 int dir_of(int i);
-int beam_of(int direction);
-int reflect_of(int beam_dir, int pawn_orientation);
-// square_t from_square(move_t mv);
-// square_t to_square(move_t mv);
-// rot_t rot_of(move_t mv);
-// move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
+
+// directions for laser: NN, EE, SS, WW                                                                                                                                             
+static int beam[NUM_ORIENTATION] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
+
+inline int beam_of(int direction) {
+  assert(direction >= 0 && direction < NUM_ORIENTATION);
+  return beam[direction];
+}
+
+// reflect[beam_dir][pawn_orientation]                                                                                                                                              
+// -1 indicates back of Pawn                                                                                                                                                        
+static int reflect[NUM_ORIENTATION][NUM_ORIENTATION] = {
+  //  NW  NE  SE  SW                                                                                                                                                                
+  { -1, -1, EE, WW},   // NN = beam_dir 0                                                                                                                                           
+  { NN, -1, -1, SS},   // EE = beam_dir 1                                                                                                                                           
+  { WW, EE, -1, -1 },  // SS = beam_dir 2                                                                                                                                           
+  { -1, NN, SS, -1 }   // WW = beam_dir 3                                                                                                                                           
+};
+
+inline int reflect_of(int beam_dir, int pawn_orientation) {
+  assert(beam_dir >= 0 && beam_dir < NUM_ORIENTATION);
+  assert(pawn_orientation >= 0 && pawn_orientation < NUM_ORIENTATION);
+  return reflect[beam_dir][pawn_orientation];
+}
+
 ptype_t ptype_mv_of(move_t mv);
 void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,

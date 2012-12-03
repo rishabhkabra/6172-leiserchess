@@ -182,31 +182,6 @@ int dir_of(int i) {
   return dir[i];
 }
 
-
-// directions for laser: NN, EE, SS, WW
-static int beam[NUM_ORIENTATION] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
-
-int beam_of(int direction) {
-  assert(direction >= 0 && direction < NUM_ORIENTATION);
-  return beam[direction];
-}
-
-// reflect[beam_dir][pawn_orientation]
-// -1 indicates back of Pawn
-int reflect[NUM_ORIENTATION][NUM_ORIENTATION] = {
-//  NW  NE  SE  SW
-  { -1, -1, EE, WW},   // NN = beam_dir 0
-  { NN, -1, -1, SS},   // EE = beam_dir 1
-  { WW, EE, -1, -1 },  // SS = beam_dir 2
-  { -1, NN, SS, -1 }   // WW = beam_dir 3
-};
-
-int reflect_of(int beam_dir, int pawn_orientation) {
-  assert(beam_dir >= 0 && beam_dir < NUM_ORIENTATION);
-  assert(pawn_orientation >= 0 && pawn_orientation < NUM_ORIENTATION);
-  return reflect[beam_dir][pawn_orientation];
-}
-
 // converts a move to string notation for FEN
 void move_to_str(move_t mv, char *buf) {
   square_t f = from_square(mv);  // from-square
