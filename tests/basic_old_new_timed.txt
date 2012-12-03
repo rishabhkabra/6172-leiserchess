@@ -11,6 +11,6 @@ player = newPlayerTimed
 invoke = ../player/leiserchess
 fis = 60 1
 
-player = rank1Timed
-invoke = ../player/beta1/b1_r1
+player = rank2Timed
+invoke = ../player/beta1/b1_r2
 fis = 60 1

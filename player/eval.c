@@ -328,14 +328,13 @@ void mark_laser_path(position_t *p, bool * laser_map, color_t c) {
 // }
 
 int h_squares_attackable(position_t *p, color_t c) {
-  position_t np = *p;
   float h_attackable = 0;
   square_t o_king_sq = p->king_locs[opp_color(c)];
 
   // Fire laser, recording in laser_map
-  square_t sq = np.king_locs[c];
-  int bdir = orientation_of(np.board[sq]);
-  assert(ptype_of(np.board[sq]) == KING);
+  square_t sq = p->king_locs[c];
+  int bdir = orientation_of(p->board[sq]);
+  assert(ptype_of(p->board[sq]) == KING);
   h_attackable += h_dist(sq, o_king_sq);  
 
   while (true) {
