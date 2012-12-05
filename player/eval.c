@@ -512,7 +512,6 @@ score_t eval(position_t *p, bool verbose) {
     for (int i = 0; i < PAWNS_COUNT; i++) {
       square_t sq = p->pawns_locs[c][i];
       if (sq != 0) {
-        piece_t x = p->board[sq];
         // MATERIAL heuristic: Bonus for each Pawn
         bonus = PAWN_EV_VALUE;
         score[c] += bonus;
