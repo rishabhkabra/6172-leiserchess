@@ -9,6 +9,7 @@ TEST_DIR := ../tests/
 TEST_CONFIG_FILE := basic_old_new_timed
 
 DEPTH := 6
+MOREDEPTH := 8
 
 ifeq ($(DEBUG),1)
 	CXXFLAGS := -DDEBUG -O0 -g $(CXXFLAGS)
@@ -36,7 +37,7 @@ runautotest:
 	echo "Done"
 	grep -i "Illegal" $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
 
-time: createinput
+time: 	createinput
 	perf stat ./leiserchess < input.txt
 
 createinput:
@@ -54,6 +55,15 @@ createinput:
 	echo move g4R >> input.txt;
 	echo go depth $(DEPTH) >> input.txt;
 	echo quit >> input.txt;
+
+moretime:
+	echo go depth $(MOREDEPTH) > input.txt;
+	echo move f0e0 >> input.txt;
+	echo go depth $(MOREDEPTH) >> input.txt;
+	echo move e9U >> input.txt;
+	echo go depth $(MOREDEPTH) >> input.txt;
+	echo quit >> input.txt;
+	perf stat ./leiserchess < input.txt
 
 leiserchess: $(OBJ) leiserchess.o
 ifeq ($(PROFILE),1)
