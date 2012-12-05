@@ -68,7 +68,8 @@ ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
   int delta_rnk = rnk_of(opp_sq) - r;
   int bonus;
 
-  switch (orientation_of(p->board[sq])) {
+  assert(x == p->board[sq]);
+  switch (orientation_of(x)) {
    case NN:
     bonus = delta_rnk;
     break;
@@ -510,22 +511,16 @@ score_t eval(position_t *p, bool verbose) {
   for (int c = 0; c < 2; c++) {
     for (int i = 0; i < PAWNS_COUNT; i++) {
       square_t sq = p->pawns_locs[c][i];
-      piece_t x = p->board[sq];
-      switch (ptype_of(x)) {
-        case PAWN:
-          // MATERIAL heuristic: Bonus for each Pawn
-          bonus = PAWN_EV_VALUE;
-          score[c] += bonus;
-          // PBETWEEN heuristic
-          is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
-                       between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
-          bonus = is_between ? PBETWEEN : 0;
-          score[c] += bonus;
-          break;
-        case INVALID:
-          break;
-        default:
-          assert(false);
+      if (sq != 0) {
+        piece_t x = p->board[sq];
+        // MATERIAL heuristic: Bonus for each Pawn
+        bonus = PAWN_EV_VALUE;
+        score[c] += bonus;
+        // PBETWEEN heuristic
+        is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
+            between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
+        bonus = is_between ? PBETWEEN : 0;
+        score[c] += bonus;
       }
     }
   }
