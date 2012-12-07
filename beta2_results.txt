@@ -1,0 +1,86 @@
+Group: cmonroe-kleinab-pedram-rkabra
+Rank in tournament: 5
+
+Commit used for tournament:
+===============================================================================
+commit 76f5a079821cbeb1136a7a15716ac21c3f11cfa3
+Author: Rishabh Kabra <rkabra@nitrous-oxide.csail.mit.edu>
+Date:   Wed Dec 5 00:50:25 2012 -0500
+
+    Removed another piece lookup in eval that was completely unnecessary.
+
+
+===============================================================================
+
+The anonymized bots are located at:
+    /afs/csail/proj/courses/6.172/final_project_players/beta2/
+
+The pgn file for the beta 2 tournament is located at:
+    /afs/csail/proj/courses/6.172/final_project_tournaments/beta1_tournament.pgn
+
+For the beta 2 tournament we used the time control: fis = 10 0.1, and also set each bot's
+hash option to 16.
+
+You can view additional statistics about your bot, and others in the
+ranking below.
+
+Rank Name                       Elo    +    - games score oppo. draws 
+   1 b2_r1                      259   38   38   432   75percent   -10    8percent 
+   2 b2_r2                      233   37   37   432   73percent    -9   10percent 
+   3 b2_r3                      195   36   36   432   69percent    -7   10percent 
+   4 b2_r4                      188   35   35   432   69percent    -7   16percent 
+   5 b2_r5                      161   34   34   432   67percent    -6   17percent 
+   6 b2_r6                      152   34   34   432   66percent    -6   17percent 
+   7 b2_r7                      131   34   34   432   63percent    -5   15percent 
+   8 b2_r8                      116   34   34   432   62percent    -4   13percent 
+   9 b2_r9                      108   34   34   432   61percent    -4   15percent 
+  10 b2_r10                      90   33   33   432   58percent    -3   20percent 
+  11 b2_r11                      90   34   34   432   59percent    -3   17percent 
+  12 b2_r12                      85   34   34   432   58percent    -3   13percent 
+  13 b2_r13                      75   34   34   432   57percent    -3   14percent 
+  14 b2_r14                      67   34   34   432   56percent    -2   13percent 
+  15 b2_r15                      55   34   34   432   54percent    -2   13percent 
+  16 b2_r16                      23   34   34   432   51percent    -1   11percent 
+  17 b2_r17                      22   35   35   432   51percent    -1    7percent 
+  18 b2_r18                      12   35   35   432   50percent     0    8percent 
+  19 b2_r19                     -13   34   34   432   47percent     0   13percent 
+  20 b2_r20                     -19   35   35   432   47percent     1   11percent 
+  21 b2_r21                     -30   34   34   432   45percent     1   11percent 
+  22 b2_r22                     -63   34   34   432   41percent     2   16percent 
+  23 b2_r23                     -80   35   35   432   40percent     3    9percent 
+  24 b2_r24                    -179   35   35   432   28percent     7   29percent 
+  25 reference_perf_bug_fixed  -261   40   40   432   23percent    10    6percent 
+  26 b2_r26                    -407   49   49   432   13percent    15    6percent 
+  27 reference                 -473   54   54   432    9percent    18    6percent 
+  28 b2_r28                    -537   61   61   432    7percent    20    3percent 
+
+      TIME       RATIO    log(r)     NODES    log(r)  ave DEPTH    GAMES   PLAYER
+ ---------  ----------  --------  --------  --------  ---------  -------   ------------------------
+    0.2001       1.000     0.000     0.854     0.000     4.9871      432   b2_r21
+    0.2024       1.012     0.012     0.993     0.151     5.2921      432   b2_r4
+    0.2041       1.020     0.020     0.935     0.091     5.1788      432   b2_r10
+    0.2045       1.022     0.022     0.948     0.105     5.2956      432   b2_r11
+    0.2047       1.023     0.023     0.997     0.156     5.3738      432   b2_r7
+    0.2049       1.024     0.024     0.670    -0.242     4.9373      432   b2_r17
+    0.2051       1.025     0.025     0.866     0.015     5.3010      432   b2_r12
+    0.2052       1.026     0.025     0.701    -0.196     5.0244      432   b2_r16
+    0.2057       1.028     0.028     1.203     0.343     5.5389      432   b2_r3
+    0.2062       1.030     0.030     0.685    -0.220     5.0545      432   b2_r14
+    0.2065       1.032     0.032     0.667    -0.247     4.8459      432   b2_r22
+    0.2072       1.036     0.035     0.997     0.156     5.4243      432   b2_r6
+    0.2073       1.036     0.035     0.664    -0.251     5.1012      432   b2_r20
+    0.2077       1.038     0.037     0.598    -0.355     4.7826      432   b2_r18
+    0.2082       1.040     0.040     0.631    -0.302     4.8881      432   b2_r26
+    0.2082       1.041     0.040     0.975     0.133     5.2477      432   b2_r13
+    0.2085       1.042     0.041     1.122     0.274     5.2795      432   b2_r2
+    0.2088       1.044     0.043     0.775    -0.096     5.1156      432   b2_r15
+    0.2092       1.046     0.045     1.172     0.317     5.5019      432   b2_r5
+    0.2094       1.047     0.046     0.767    -0.107     5.0978      432   b2_r19
+    0.2096       1.047     0.046     0.483    -0.569     4.8985      432   b2_r23
+    0.2098       1.048     0.047     0.760    -0.116     5.0546      432   b2_r9
+    0.2099       1.049     0.048     1.129     0.280     5.5457      432   b2_r8
+    0.2103       1.051     0.050     1.703     0.691     5.3590      432   b2_r1
+    0.2105       1.052     0.051     0.377    -0.818     4.5841      432   reference_perf_bug_fixed
+    0.2137       1.068     0.066     0.848    -0.006     4.9664      432   b2_r24
+    0.2226       1.113     0.107     0.307    -1.023     4.7409      432   b2_r28
+    0.2236       1.118     0.111     0.153    -1.722     3.8945      432   reference
