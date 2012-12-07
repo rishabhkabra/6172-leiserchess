@@ -16,7 +16,7 @@ The anonymized bots are located at:
     /afs/csail/proj/courses/6.172/final_project_players/beta2/
 
 The pgn file for the beta 2 tournament is located at:
-    /afs/csail/proj/courses/6.172/final_project_tournaments/beta1_tournament.pgn
+    /afs/csail/proj/courses/6.172/final_project_tournaments/beta2_tournament.pgn
 
 For the beta 2 tournament we used the time control: fis = 10 0.1, and also set each bot's
 hash option to 16.
