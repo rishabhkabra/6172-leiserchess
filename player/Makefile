@@ -5,8 +5,8 @@ OBJ := $(addsuffix .o, $(basename $(SRC)))
 
 CXXFLAGS := -c -Wall
 TEST_DIR := ../tests/
-
 TEST_CONFIG_FILE := basic_old_new_timed
+BETA2_DIR := ../player/beta2/
 
 DEPTH := 6
 MOREDEPTH := 8
@@ -29,8 +29,24 @@ all: clean leiserchess
 
 autotest: runautotest
 
+top5autotest:
+	rm -f $(BETA2_DIR)*.pgn
+	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r1_config &
+	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r2_config &
+	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r3_config &
+	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r4_config &
+	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r5_config
+	echo "Done"
+
 elo:
 	$(TEST_DIR)pgnrate.tcl -anchor newDepth3 -elo 3000 $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
+
+top5elo:
+	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r1_config.pgn
+	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r2_config.pgn
+	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r3_config.pgn
+	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r4_config.pgn
+	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r5_config.pgn
 
 runautotest:
 	rm -f $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
