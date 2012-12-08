@@ -246,23 +246,19 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   if (reduction > 0) {
     // We first perform a reduced depth search.
     int score = scout_search(p, beta, depth - reduction, ply, 0, pv, node_count);
-
     // -(parentBeta-1) = beta --> parentBeta = -beta+1
     int parentBeta = -beta + 1;
     int parentScore = -score;
-
     // No need to search to full depth, return this score.
     if (parentScore < parentBeta) {
       return score;
     }
-
     if (abortf) {
       return 0;
     }
   }
 
   pv[0] = 0;
-
   // check whether we should abort
   tics++;
   if ((tics & ABORT_CHECK_PERIOD) == 0) {
@@ -273,6 +269,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   }
 
   // get transposition table record if available
+  // NOTE: moving this just before the futility pruning gives a drastic improvement
   ttRec_t *rec = tt_hashtable_get(p->key);
   int hash_table_move = 0;
   if (rec) {
@@ -285,7 +282,6 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   score_t best_score = -INF;
   score_t sps = eval(p, false) + HMB;  // stand pat (having-the-move) bonus
   bool quiescence = (depth <= 0);      // are we in quiescence?
-
   if (quiescence) {
     best_score = sps;
     if (best_score >= beta) {
@@ -315,28 +311,136 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   }
 
   position_t np;  // next position
+  color_t fctm = color_to_move_of(p);   // color to move
+  int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
+  move_t subpv[MAX_PLY_IN_SEARCH];
+  score_t score;
+  int legal_move_count = 0;
+  int mv_index;
+  move_t killer_a = killer[ply][0];
+  move_t killer_b = killer[ply][1];
+  sortable_move_t topmoves[3] = {hash_table_move, killer_a, killer_b};
+  int best_move_index = 0;
+  bool found_in_topmoves = false;
+  int num_topmoves_valid = 0;
+
+  for (mv_index = 0; mv_index < 3; mv_index++) {
+    subpv[0] = 0;
+    move_t mv = get_move(topmoves[mv_index]);
+    if(!is_move_valid(p, mv)) {
+      continue;
+    }
+    num_topmoves_valid++;
+
+    if (TRACE_MOVES) {
+      print_move_info(mv, ply);
+    }
+    int ext = 0;           // extensions
+    bool blunder = false;  // shoot our own piece
+
+    (*node_count)++;
+    piece_t victim = make_move(p, &np, mv);  // make the move baby! returns 0 or victim piece or KO (== -1)
+    if (victim == KO) {
+      continue;
+    }
+
+    if (is_game_over(victim, &score, pov, ply)) {
+      // Break out of loop.
+      goto top_scored;
+    }
+
+    if (victim == 0 && quiescence) {
+      continue;   // ignore noncapture moves in quiescence
+    }
+    if (color_of(np.victim) == fctm) {
+      blunder = true;
+    }
+    if (quiescence && blunder) {
+      continue;  // ignore own piece captures in quiescence
+    }
+
+    // A legal move is a move that's not KO, but when we are in quiescence
+    // we only want to count moves that has a capture.
+    legal_move_count++;
+
+    if (victim > 0 && !blunder) {
+      ext = 1;  // extend captures
+    }
+
+    if (is_repeated(&np, &score, ply)) {
+      // Break out of loop.
+      goto top_scored;
+    }
+
+    score = -scout_search(&np, -(beta - 1), ext + depth - 1, ply + 1, 0,
+                          subpv, node_count);
+    if (abortf) {
+      return 0;
+    }
+    
+   top_scored:
+    if (score > best_score) {
+      best_score = score;
+      best_move_index = mv_index;
+      pv[0] = mv;
+      memcpy(pv + 1, subpv, sizeof(move_t) * (MAX_PLY_IN_SEARCH - 1));
+      pv[MAX_PLY_IN_SEARCH - 1] = 0;
+
+      if (score >= beta) {
+        if (mv != killer[ply][0]) {
+          killer[ply][1] = killer[ply][0];
+          killer[ply][0] = mv;
+        }
+        found_in_topmoves = true;
+        break;
+      }
+    }
+  }
+
+  if (found_in_topmoves) {
+    if (quiescence == false) {
+      if (mv_index < 3) {
+        mv_index++;   // moves tried
+      }
+      //for (int i = 0; i < 3; i++) { // really needed?
+      //  set_sort_key(&topmoves[i], SORT_MASK-i);
+      //}
+      update_best_move_history(p, best_move_index, topmoves, mv_index);
+    }
+    assert(abs(best_score) != -INF);
+    
+    if (best_score < beta) {
+      tt_hashtable_put(p->key, depth,
+                       tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
+    } else {
+      tt_hashtable_put(p->key, depth,
+                       tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
+    }
+    
+    return best_score;
+  }
+
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
   int num_of_moves = generate_all(p, move_list, false);
-
-  color_t fctm = color_to_move_of(p);
-  int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
-  move_t killer_a = killer[ply][0];
-  move_t killer_b = killer[ply][1];
+  int i = num_topmoves_valid;
+  sortable_move_t tmp;
 
   // sort special moves to the front
-  for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
+  for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
-    if (mv == hash_table_move) {
+    if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
+      --i;
+      tmp = move_list[mv_index];
+      move_list[mv_index] = move_list[i];
+      move_list[i] = tmp;
+      /*    if (mv == hash_table_move) {
       set_sort_key(&move_list[mv_index], SORT_MASK);
-      // move_list[mv_index] |= SORT_MASK << SORT_SHIFT;
     } else if (mv == killer_a) {
       set_sort_key(&move_list[mv_index], SORT_MASK - 1);
-      // move_list[mv_index] |= (SORT_MASK - 1) << SORT_SHIFT;
     } else if (mv == killer_b) {
-      set_sort_key(&move_list[mv_index], SORT_MASK - 2);
-      // move_list[mv_index] |= (SORT_MASK - 2) << SORT_SHIFT;
+      set_sort_key(&move_list[mv_index], SORT_MASK - 2); */
     } else {
       ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
@@ -347,22 +451,16 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     }
   }
 
-  move_t subpv[MAX_PLY_IN_SEARCH];
-  score_t score;
-
+  best_move_index = 0;   // index of best move found
+  //legal_move_count = 0;
   bool sortme = true;
-  int legal_move_count = 0;
-  int mv_index;  // used outside of the loop
-  int best_move_index = 0;   // index of best move found
-  
-  for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
+  for (mv_index = num_topmoves_valid; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
-
     // on the fly sorting
     if (sortme) {
       for (int j = mv_index + 1; j < num_of_moves; j++) {
         if (move_list[j] > move_list[mv_index]) {
-          sortable_move_t tmp = move_list[j];
+          tmp = move_list[j];
           move_list[j] = move_list[mv_index];
           move_list[mv_index] = tmp;
         }
@@ -373,6 +471,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     }
 
     move_t mv = get_move(move_list[mv_index]);
+
     if (TRACE_MOVES) {
       print_move_info(mv, ply);
     }
