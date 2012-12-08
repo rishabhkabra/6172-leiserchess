@@ -66,12 +66,6 @@ int FUT_DEPTH;     // set to zero for no futilty
 
 static move_t killer[MAX_PLY_IN_SEARCH][4];   // up to 4 killers
 
-// typedef struct {
-//      move_t killer[..][..];
-// } killer_t;
-// static cilk::holder<killer_t> killer;
-// killer().killer[ply][0] = ....
-
 sort_key_t sort_key(sortable_move_t mv) {
   return (sort_key_t) ((mv >> SORT_SHIFT) & SORT_MASK);
 }
@@ -360,7 +354,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   int legal_move_count = 0;
   int mv_index;  // used outside of the loop
   int best_move_index = 0;   // index of best move found
-  // ki
+  
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
 
