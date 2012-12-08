@@ -328,6 +328,37 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
   return move_count;
 }
 
+bool is_move_valid(position_t *p, move_t mv) {
+  ptype_t typ = ptype_mv_of(mv);
+  if (typ == EMPTY) {
+    return false;
+  }
+  assert(typ != INVALID);
+  square_t from_sq = from_square(mv);
+  if (color_to_move_of(p) != color_of(p->board[from_sq])){
+    return false;
+  }
+  assert(ptype_of(p->board[from_sq]) != INVALID);
+  assert(ptype_of(p->board[to_square(mv)]) != INVALID);
+  if (ptype_of(p->board[from_sq]) != typ) {
+    return false;
+  }
+  assert(!(from_sq == to_square(mv) && rot_of(mv) == NONE && typ != KING));
+  assert(!(from_sq != to_square(mv) && rot_of(mv) != NONE));
+  WHEN_DEBUG_VERBOSE({
+    sortable_move_t move_list[MAX_NUM_MOVES];
+    int num_of_moves = generate_all(p, move_list, false);
+    for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
+      move_t mv2 = get_move(move_list[mv_index]);
+      if (mv2 == mv) {
+        return true;
+      }
+    }
+    assert(false);
+  });
+  return true;
+}
+
 int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict) {
   sortable_move_t new_gen_list[MAX_NUM_MOVES];

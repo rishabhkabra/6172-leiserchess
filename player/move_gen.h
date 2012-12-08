@@ -304,7 +304,7 @@ inline int reflect_of(int beam_dir, int pawn_orientation) {
   assert(pawn_orientation >= 0 && pawn_orientation < NUM_ORIENTATION);
   return reflect[beam_dir][pawn_orientation];
 }
-
+bool is_move_valid(position_t *p, move_t mv);
 ptype_t ptype_mv_of(move_t mv);
 void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,
