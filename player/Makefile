@@ -43,10 +43,15 @@ elo:
 
 top5elo:
 	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r1_config.pgn
+	$(TEST_DIR)pgnstats $(BETA2_DIR)b2_r1_config.pgn
 	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r2_config.pgn
+	$(TEST_DIR)pgnstats $(BETA2_DIR)b2_r2_config.pgn
 	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r3_config.pgn
+	$(TEST_DIR)pgnstats $(BETA2_DIR)b2_r3_config.pgn
 	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r4_config.pgn
+	$(TEST_DIR)pgnstats $(BETA2_DIR)b2_r4_config.pgn
 	$(TEST_DIR)pgnrate.tcl $(BETA2_DIR)b2_r5_config.pgn
+	$(TEST_DIR)pgnstats $(BETA2_DIR)b2_r5_config.pgn
 
 runautotest:
 	rm -f $(TEST_DIR)$(TEST_CONFIG_FILE).pgn
