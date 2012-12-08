@@ -1,0 +1,16 @@
+cpus = 2
+book = ../tests/book.dta
+game_rounds = 30
+title = us_vs_rank4
+adjudicate = 200
+
+# now we have the player definitions
+# --
+
+player = OurPlayer
+invoke = ../player/leiserchess
+fis = 10 0.1
+
+player = Beta2Rank4
+invoke = ../player/beta2/b2_r4
+fis = 10 0.1
