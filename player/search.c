@@ -446,63 +446,54 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
-  int num_of_moves = generate_all(p, move_list);
+  int original_num_of_moves = generate_all(p, move_list + num_topmoves);
+  int num_of_moves = original_num_of_moves + num_topmoves;
   int topmoves_found = 0;
   sortable_move_t tmp;
+  int elements_to_sort = num_topmoves;
 
   // sort special moves to the front
-  for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
+  for (mv_index = num_topmoves; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
     if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
-      //std::cout<<"\n\tFound topmove in move_list: "<<mv<<" at index: "<<mv_index;
-      tmp = move_list[mv_index];
-      move_list[mv_index] = move_list[topmoves_found];
-      move_list[topmoves_found] = tmp;
-      ++topmoves_found;
-      /*    if (mv == hash_table_move) {
-      set_sort_key(&move_list[mv_index], SORT_MASK);
-    } else if (mv == killer_a) {
-      set_sort_key(&move_list[mv_index], SORT_MASK - 1);
-    } else if (mv == killer_b) {
-      set_sort_key(&move_list[mv_index], SORT_MASK - 2); */
+      // guaranteed here that topmoves_found < num_topmoves, and consequently, 
+      // topmoves_found < mv_index at any point in the loop
+      assert(topmoves_found < num_topmoves);
+      assert(topmoves_found < mv_index);
+      move_list[topmoves_found++] = move_list[mv_index];
+      move_list[mv_index--] = move_list[--num_of_moves];
     } else {
       ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORIENTATION_MASK & (orientation_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
-      set_sort_key(&move_list[mv_index], best_move_history[fctm][pce][ts][ot]);
+      if (best_move_history[fctm][pce][ts][ot] || pce == KING) {
+        set_sort_key(&move_list[mv_index], best_move_history[fctm][pce][ts][ot]);
+        // guaranteed that elements_to_sort <= mv_index, which ensures that
+        // the following swap does not place a seen element in the unseen
+        // range of the loop, thereby causing it to process the element twice
+        assert(elements_to_sort <= mv_index);
+        tmp = move_list[mv_index];
+        move_list[mv_index] = move_list[elements_to_sort];
+        move_list[elements_to_sort++] = tmp;
+      }
     }
   }
 
   assert(topmoves_found == num_topmoves);
   assert(num_topmoves >= 0 && num_topmoves <= 3);
+  assert(elements_to_sort >= num_topmoves && elements_to_sort <= num_of_moves);
+  assert(num_of_moves == original_num_of_moves);
+  std::sort(move_list + num_topmoves, move_list + elements_to_sort, std::greater<sortable_move_t>());
 
   best_move_index = 0;   // index of best move found
   //legal_move_count = 0;
 
-  std::sort(move_list + num_topmoves, move_list + num_of_moves, std::greater<sortable_move_t>());
+  //std::partial_sort(move_list + num_topmoves, move_list + num_topmoves + elements_to_sort, move_list + num_of_moves, std::greater<sortable_move_t>());
 
   for (mv_index = num_topmoves; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
-    
-    /*
-    if (sortme) { // on the fly sorting
-      for (int j = mv_index + 1; j < num_of_moves; j++) {
-        if (move_list[j] > move_list[mv_index]) {
-          std::cout<<"\nError.";
-          tmp = move_list[j];
-          move_list[j] = move_list[mv_index];
-          move_list[mv_index] = tmp;
-        }
-      }
-      
-      if (sort_key(move_list[mv_index]) == 0) {
-        sortme = false;
-      }
-    } 
-    */
-
     move_t mv = get_move(move_list[mv_index]);
 
     if (TRACE_MOVES) {
