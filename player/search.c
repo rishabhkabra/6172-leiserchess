@@ -317,20 +317,35 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   score_t score;
   int legal_move_count = 0;
   int mv_index;
-  move_t killer_a = killer[ply][0];
-  move_t killer_b = killer[ply][1];
-  sortable_move_t topmoves[3] = {hash_table_move, killer_a, killer_b};
   int best_move_index = 0;
   bool found_in_topmoves = false;
-  int num_topmoves_valid = 0;
+  move_t killer_a = killer[ply][0];
+  move_t killer_b = killer[ply][1];
+  sortable_move_t topmoves[3];
+  int num_topmoves = 0;
 
-  for (mv_index = 0; mv_index < 3; mv_index++) {
+  if (is_move_valid(p, hash_table_move)) {
+    topmoves[num_topmoves] = hash_table_move;
+    num_topmoves++;
+  }
+  if (is_move_valid(p, killer_a) && killer_a != hash_table_move) {
+    topmoves[num_topmoves] = killer_a;
+    num_topmoves++;
+  }
+  if (is_move_valid(p, killer_b) && killer_b != hash_table_move && killer_b != killer_a) {
+    topmoves[num_topmoves] = killer_b;
+    num_topmoves++;
+  }
+
+  /*  
+  for (int i = 0; i < num_topmoves; i++) {
+    printf("\nTopmove[%d] = %d", i, topmoves[i]);
+  }
+  */
+
+  for (mv_index = 0; mv_index < num_topmoves; mv_index++) {
     subpv[0] = 0;
     move_t mv = get_move(topmoves[mv_index]);
-    if(!is_move_valid(p, mv)) {
-      continue;
-    }
-    num_topmoves_valid++;
 
     if (TRACE_MOVES) {
       print_move_info(mv, ply);
@@ -399,7 +414,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
 
   if (found_in_topmoves) {
     if (quiescence == false) {
-      if (mv_index < 3) {
+      if (mv_index < num_topmoves) {
         mv_index++;   // moves tried
       }
       //for (int i = 0; i < 3; i++) { // really needed?
@@ -420,21 +435,27 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     return best_score;
   }
 
+  //std::cout<<"\n\nNum of topmoves valid: "<<num_topmoves;
+  assert(num_topmoves >= 0 && num_topmoves <= 3);
+  assert(killer_a == killer[ply][0]);
+  assert(killer_b == killer[ply][1]);
+
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
   int num_of_moves = generate_all(p, move_list, false);
-  int i = num_topmoves_valid;
+  int i = 0;
   sortable_move_t tmp;
 
   // sort special moves to the front
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
     if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
-      --i;
+      //std::cout<<"\n\tFound topmove in move_list: "<<mv<<" at index: "<<mv_index;
       tmp = move_list[mv_index];
       move_list[mv_index] = move_list[i];
       move_list[i] = tmp;
+      ++i;
       /*    if (mv == hash_table_move) {
       set_sort_key(&move_list[mv_index], SORT_MASK);
     } else if (mv == killer_a) {
@@ -451,10 +472,14 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     }
   }
 
+  assert(i == num_topmoves);
+  assert(num_topmoves >= 0 && num_topmoves <= 3);
+
   best_move_index = 0;   // index of best move found
   //legal_move_count = 0;
   bool sortme = true;
-  for (mv_index = num_topmoves_valid; mv_index < num_of_moves; mv_index++) {
+
+  for (mv_index = num_topmoves; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
     // on the fly sorting
     if (sortme) {

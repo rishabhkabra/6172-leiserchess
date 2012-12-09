@@ -10,7 +10,7 @@ BETA2_DIR := ../player/beta2/
 
 DEPTH := 6
 MOREDEPTH := 8
-REALTIME := 100000
+REALTIME := 250000
 
 ifeq ($(DEBUG),1)
 	CXXFLAGS := -DDEBUG -O0 -g $(CXXFLAGS)
