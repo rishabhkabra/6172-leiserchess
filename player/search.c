@@ -387,6 +387,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
       goto top_scored;
     }
 
+    assert(legal_move_count < LMR_R1);
     score = -scout_search(&np, -(beta - 1), ext + depth - 1, ply + 1, 0,
                           subpv, node_count);
     if (abortf) {
@@ -406,6 +407,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
           killer[ply][1] = killer[ply][0];
           killer[ply][0] = mv;
         }
+        assert(!(found_in_topmoves));
         found_in_topmoves = true;
         break;
       }
