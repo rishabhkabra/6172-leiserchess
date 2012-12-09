@@ -447,7 +447,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
   int num_of_moves = generate_all(p, move_list, false);
-  int i = 0;
+  int topmoves_found = 0;
   sortable_move_t tmp;
 
   // sort special moves to the front
@@ -456,9 +456,9 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
       //std::cout<<"\n\tFound topmove in move_list: "<<mv<<" at index: "<<mv_index;
       tmp = move_list[mv_index];
-      move_list[mv_index] = move_list[i];
-      move_list[i] = tmp;
-      ++i;
+      move_list[mv_index] = move_list[topmoves_found];
+      move_list[topmoves_found] = tmp;
+      ++topmoves_found;
       /*    if (mv == hash_table_move) {
       set_sort_key(&move_list[mv_index], SORT_MASK);
     } else if (mv == killer_a) {
@@ -475,12 +475,11 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
     }
   }
 
-  assert(i == num_topmoves);
+  assert(topmoves_found == num_topmoves);
   assert(num_topmoves >= 0 && num_topmoves <= 3);
 
   best_move_index = 0;   // index of best move found
   //legal_move_count = 0;
-  bool sortme = true;
 
   std::sort(move_list + num_topmoves, move_list + num_of_moves, std::greater<sortable_move_t>());
 
