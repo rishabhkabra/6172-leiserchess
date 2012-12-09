@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <algorithm>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -481,21 +482,27 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   //legal_move_count = 0;
   bool sortme = true;
 
+  std::sort(move_list + num_topmoves, move_list + num_of_moves, std::greater<sortable_move_t>());
+
   for (mv_index = num_topmoves; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
-    // on the fly sorting
-    if (sortme) {
+    
+    /*
+    if (sortme) { // on the fly sorting
       for (int j = mv_index + 1; j < num_of_moves; j++) {
         if (move_list[j] > move_list[mv_index]) {
+          std::cout<<"\nError.";
           tmp = move_list[j];
           move_list[j] = move_list[mv_index];
           move_list[mv_index] = tmp;
         }
       }
+      
       if (sort_key(move_list[mv_index]) == 0) {
         sortme = false;
       }
-    }
+    } 
+    */
 
     move_t mv = get_move(move_list[mv_index]);
 
