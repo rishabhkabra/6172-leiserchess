@@ -7,6 +7,7 @@ CXXFLAGS := -c -Wall
 TEST_DIR := ../tests/
 TEST_CONFIG_FILE := basic_old_new_timed
 BETA2_DIR := ../player/beta2/
+PLAYER_DIR := ../player/
 
 DEPTH := 6
 MOREDEPTH := 8
@@ -31,6 +32,8 @@ autotest: runautotest
 
 top5autotest:
 	rm -f $(BETA2_DIR)*.pgn
+	rm -f $(BETA2_DIR)leiserchess
+	cp $(PLAYER_DIR)leiserchess $(BETA2_DIR)leiserchess
 	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r1_config &
 	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r2_config &
 	java -jar $(TEST_DIR)lauto.jar $(BETA2_DIR)b2_r3_config &

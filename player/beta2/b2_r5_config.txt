@@ -8,7 +8,7 @@ adjudicate = 200
 # --
 
 player = OurPlayer
-invoke = ../player/leiserchess
+invoke = ../player/beta2/leiserchess
 fis = 10 0.1
 
 player = Beta2Rank5
