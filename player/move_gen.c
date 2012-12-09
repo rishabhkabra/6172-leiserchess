@@ -279,7 +279,7 @@ int generate_all_old(position_t *p, sortable_move_t *sortable_move_list,
   return move_count;
 }
 
-inline int generate_single_piece_move(ptype_t typ, square_t sq, int move_count, position_t *p, sortable_move_t *sortable_move_list) {
+inline void generate_single_piece_move(ptype_t typ, square_t sq, int &move_count, position_t *p, sortable_move_t *sortable_move_list) {
   assert(typ != INVALID);
   // directions
   for (int d = 0; d < 8; d++) {
@@ -306,16 +306,14 @@ inline int generate_single_piece_move(ptype_t typ, square_t sq, int move_count, 
     assert(move_count < MAX_NUM_MOVES);
     sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
   }
-  return move_count;
 }
 
-int generate_all(position_t *p, sortable_move_t *sortable_move_list,
-                 bool strict) {
+int generate_all(position_t *p, sortable_move_t *sortable_move_list) {
   color_t ctm = color_to_move_of(p);
   int move_count = 0;
   // Generate kings move
   square_t sq = p->king_locs[ctm];
-  move_count = generate_single_piece_move(KING, sq, move_count, p, sortable_move_list);
+  generate_single_piece_move(KING, sq, move_count, p, sortable_move_list);
   assert(move_count < MAX_NUM_MOVES);
   sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, sq); // Also generate null move
   for (int i = 0; i < PAWNS_COUNT; i++) {
@@ -323,7 +321,7 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
     if (!sq) {
       continue;
     }
-    move_count = generate_single_piece_move(PAWN, sq, move_count, p, sortable_move_list);
+    generate_single_piece_move(PAWN, sq, move_count, p, sortable_move_list);
   }
   return move_count;
 }
@@ -367,7 +365,7 @@ int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
     new_gen_list[i] = 0;
   }
   int move_count = generate_all_old(p, sortable_move_list, strict);
-  int move_count_new = generate_all(p, new_gen_list, strict);
+  int move_count_new = generate_all(p, new_gen_list);
   assert(move_count == move_count_new);
   std::sort(sortable_move_list, sortable_move_list + MAX_NUM_MOVES);
   std::sort(new_gen_list, new_gen_list + MAX_NUM_MOVES);
@@ -768,7 +766,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
     return 1;
   }
 
-  num_moves = generate_all(p, lst, true);
+  num_moves = generate_all(p, lst);
 
   if (depth == 1) {
     return num_moves;

@@ -446,7 +446,7 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
-  int num_of_moves = generate_all(p, move_list, false);
+  int num_of_moves = generate_all(p, move_list);
   int topmoves_found = 0;
   sortable_move_t tmp;
 
@@ -643,7 +643,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
-  int num_of_moves = generate_all(p, move_list, false);
+  int num_of_moves = generate_all(p, move_list);
 
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
@@ -810,7 +810,7 @@ score_t searchRoot(position_t *p, score_t alpha, score_t beta, int depth,
 
   if (depth == 1) {
     // we are at depth 1; generate all possible moves
-    num_of_moves = generate_all(p, move_list, false);
+    num_of_moves = generate_all(p, move_list);
     // shuffle the list of moves. IMP: Commenting out the following loop is a significant performance gain.
     for (int i = 0; i < num_of_moves; i++) {
       int r = myrand() % num_of_moves;

@@ -153,7 +153,7 @@ piece_t make_from_string(position_t *old, position_t *p,
   move_t mv = 0;
   // make copy so that mvstring can be a constant
   char string[MAX_CHARS_IN_MOVE];
-  int move_count = generate_all(old, lst, true);
+  int move_count = generate_all(old, lst);
 
   strcpy(string, mvstring);
   lower_case(string);
@@ -568,7 +568,7 @@ int main(int argc, char *argv[]) {
 
       sortable_move_t  lst[MAX_NUM_MOVES];
       if (strcmp(tok[0], "generate") == 0) {
-        int num_moves = generate_all(&gme[ix], lst, true);
+        int num_moves = generate_all(&gme[ix], lst);
         for (int i = 0; i < num_moves; ++i) {
           char buf[MAX_CHARS_IN_MOVE];
           move_to_str(get_move(lst[i]), buf);
