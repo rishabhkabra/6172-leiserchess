@@ -444,165 +444,213 @@ static score_t scout_search(position_t *p, score_t beta, int depth,
   assert(killer_b == killer[ply][1]);
 
   // hopefully, more than we will need
-  sortable_move_t move_list[MAX_NUM_MOVES];
+  sortable_move_t move_list[2][MAX_NUM_MOVES]; // move_list[0] = keyed_move_list, move_list[1] = unkeyed_move_list
   // number of moves in list
-  int num_of_moves = generate_all(p, move_list);
+  int num_of_moves[2] = { num_topmoves, generate_all(p, move_list[1]) }; // num_of_moves[0] = num of keyed moves, num_of_moves[1] = num of unkeyed moves
   int topmoves_found = 0;
   sortable_move_t tmp;
+  int total_num_moves = num_of_moves[1];
+
+  /*  
+  sortable_move_t test_list[MAX_NUM_MOVES];
+  int test_count = generate_all(p, test_list);
+  int test_i = 0;
+
+  // sort special moves to the front                                                            
+  for (mv_index = 0; mv_index < test_count; mv_index++) {
+    move_t mv = get_move(test_list[mv_index]);
+    if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
+      //std::cout<<"\n\tFound topmove in move_list: "<<mv<<" at index: "<<mv_index;             
+      tmp = test_list[mv_index];
+      test_list[mv_index] = test_list[test_i];
+      test_list[test_i] = tmp;
+      test_i++;
+    } else {
+      ptype_t  pce = ptype_mv_of(mv);
+      rot_t    ro  = rot_of(mv);   // rotation                                                  
+      square_t fs  = from_square(mv);
+      int      ot  = ORIENTATION_MASK & (orientation_of(p->board[fs]) + ro);
+      square_t ts  = to_square(mv);
+      set_sort_key(&test_list[mv_index], best_move_history[fctm][pce][ts][ot]);
+    }
+  }
+  assert(test_i == num_topmoves);
+  std::sort(test_list, test_list + test_i, std::greater<sortable_move_t>());
+  std::sort(test_list + test_i, test_list + test_count, std::greater<sortable_move_t>());
+  */
 
   // sort special moves to the front
-  for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
-    move_t mv = get_move(move_list[mv_index]);
+  for (mv_index = 0; mv_index < num_of_moves[1]; mv_index++) {
+    move_t mv = get_move(move_list[1][mv_index]);
     if (mv == hash_table_move || mv == killer_a || mv == killer_b) {
       //std::cout<<"\n\tFound topmove in move_list: "<<mv<<" at index: "<<mv_index;
-      tmp = move_list[mv_index];
-      move_list[mv_index] = move_list[topmoves_found];
-      move_list[topmoves_found] = tmp;
-      ++topmoves_found;
-      /*    if (mv == hash_table_move) {
-      set_sort_key(&move_list[mv_index], SORT_MASK);
-    } else if (mv == killer_a) {
-      set_sort_key(&move_list[mv_index], SORT_MASK - 1);
-    } else if (mv == killer_b) {
-      set_sort_key(&move_list[mv_index], SORT_MASK - 2); */
+      move_list[0][topmoves_found] = move_list[1][mv_index];
+      move_list[1][mv_index--] = move_list[1][--num_of_moves[1]];
+      topmoves_found++;
     } else {
       ptype_t  pce = ptype_mv_of(mv);
       rot_t    ro  = rot_of(mv);   // rotation
       square_t fs  = from_square(mv);
       int      ot  = ORIENTATION_MASK & (orientation_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
-      set_sort_key(&move_list[mv_index], best_move_history[fctm][pce][ts][ot]);
+      if (best_move_history[fctm][pce][ts][ot]) {
+        set_sort_key(&move_list[1][mv_index], best_move_history[fctm][pce][ts][ot]);
+        move_list[0][num_of_moves[0]++] = move_list[1][mv_index];
+        move_list[1][mv_index--] = move_list[1][--num_of_moves[1]];
+      }
+      //else {
+      //  tmp = move_list[1][mv_index];
+      //  set_sort_key(&move_list[1][mv_index], best_move_history[fctm][pce][ts][ot]);
+      //  assert(tmp == move_list[1][mv_index]);
+      //}
     }
   }
 
   assert(topmoves_found == num_topmoves);
+  assert(total_num_moves == num_of_moves[0] + num_of_moves[1]);
   assert(num_topmoves >= 0 && num_topmoves <= 3);
 
   best_move_index = 0;   // index of best move found
   //legal_move_count = 0;
 
-  std::sort(move_list + num_topmoves, move_list + num_of_moves, std::greater<sortable_move_t>());
+  bool found = false;
+  int i;
+  int move_list_begin[2] = { num_topmoves, 0 };
 
-  for (mv_index = num_topmoves; mv_index < num_of_moves; mv_index++) {
-    subpv[0] = 0;
+  //std::sort(move_list[0], move_list[0] + move_list_begin[0], std::greater<sortable_move_t>());
+  std::sort(move_list[0] + move_list_begin[0], move_list[0] + num_of_moves[0], std::greater<sortable_move_t>());
+  std::sort(move_list[1] + move_list_begin[1], move_list[1] + num_of_moves[1], std::greater<sortable_move_t>());
+
+  /*
+  for (i = 0; i < test_count; i++) {
+    int j, k;
+    if (i < num_of_moves[0]) {
+      j = 0;
+      k = i;
+    } 
+    else {
+      j = 1;
+      k = i - num_of_moves[0];
+    }
+    assert(test_list[i] == move_list[j][k]);
+  }
+  */
+
+  for (i = 0; i < 2; i++) {
     
-    /*
-    if (sortme) { // on the fly sorting
-      for (int j = mv_index + 1; j < num_of_moves; j++) {
-        if (move_list[j] > move_list[mv_index]) {
-          std::cout<<"\nError.";
-          tmp = move_list[j];
-          move_list[j] = move_list[mv_index];
-          move_list[mv_index] = tmp;
+    for (mv_index = move_list_begin[i]; mv_index < num_of_moves[i]; mv_index++) {
+      subpv[0] = 0;      
+      move_t mv = get_move(move_list[i][mv_index]);
+      
+      if (TRACE_MOVES) {
+        print_move_info(mv, ply);
+      }
+      
+      int ext = 0;           // extensions
+      bool blunder = false;  // shoot our own piece
+      
+      (*node_count)++;
+      piece_t victim = make_move(p, &np, mv);  // make the move baby! returns 0 or victim piece or KO (== -1)
+      if (victim == KO) {
+        continue;
+      }
+      
+      if (is_game_over(victim, &score, pov, ply)) {
+        // Break out of loop.
+        goto scored;
+      }
+      
+      if (victim == 0 && quiescence) {
+        continue;   // ignore noncapture moves in quiescence
+      }
+      if (color_of(np.victim) == fctm) {
+        blunder = true;
+      }
+      if (quiescence && blunder) {
+        continue;  // ignore own piece captures in quiescence
+      }
+      
+      // A legal move is a move that's not KO, but when we are in quiescence
+      // we only want to count moves that has a capture.
+      legal_move_count++;
+      
+      if (victim > 0 && !blunder) {
+      ext = 1;  // extend captures
+      }
+      
+      if (is_repeated(&np, &score, ply)) {
+        // Break out of loop.
+        goto scored;
+      }
+      
+      { // scote the LMR so that compiler does not complain about next_reduction
+        // initialized after goto statement
+        // Late move reductions - or LMR
+        int next_reduction = 0;
+        if (legal_move_count >= LMR_R1 && depth > 2 &&
+            victim == 0 && mv != killer_a && mv != killer_b) {
+          if (legal_move_count >= LMR_R2) {
+            next_reduction = 2;
+          } else {
+            next_reduction = 1;
+          }
+        }
+        
+        score = -scout_search(&np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
+                              subpv, node_count);
+        if (abortf) {
+          return 0;
         }
       }
       
-      if (sort_key(move_list[mv_index]) == 0) {
-        sortme = false;
-      }
-    } 
-    */
-
-    move_t mv = get_move(move_list[mv_index]);
-
-    if (TRACE_MOVES) {
-      print_move_info(mv, ply);
-    }
-
-    int ext = 0;           // extensions
-    bool blunder = false;  // shoot our own piece
-
-    (*node_count)++;
-    piece_t victim = make_move(p, &np, mv);  // make the move baby! returns 0 or victim piece or KO (== -1)
-    if (victim == KO) {
-      continue;
-    }
-
-    if (is_game_over(victim, &score, pov, ply)) {
-      // Break out of loop.
-      goto scored;
-    }
-
-    if (victim == 0 && quiescence) {
-      continue;   // ignore noncapture moves in quiescence
-    }
-    if (color_of(np.victim) == fctm) {
-      blunder = true;
-    }
-    if (quiescence && blunder) {
-      continue;  // ignore own piece captures in quiescence
-    }
-
-    // A legal move is a move that's not KO, but when we are in quiescence
-    // we only want to count moves that has a capture.
-    legal_move_count++;
-
-    if (victim > 0 && !blunder) {
-      ext = 1;  // extend captures
-    }
-
-    if (is_repeated(&np, &score, ply)) {
-      // Break out of loop.
-      goto scored;
-    }
-
-    { // scote the LMR so that compiler does not complain about next_reduction
-      // initialized after goto statement
-      // Late move reductions - or LMR
-      int next_reduction = 0;
-      if (legal_move_count >= LMR_R1 && depth > 2 &&
-          victim == 0 && mv != killer_a && mv != killer_b) {
-        if (legal_move_count >= LMR_R2) {
-          next_reduction = 2;
-        } else {
-          next_reduction = 1;
-        }
-      }
-
-      score = -scout_search(&np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
-          subpv, node_count);
-      if (abortf) {
-        return 0;
-      }
-    }
-
    scored:
-    if (score > best_score) {
-      best_score = score;
-      best_move_index = mv_index;
-      pv[0] = mv;
-      memcpy(pv + 1, subpv, sizeof(move_t) * (MAX_PLY_IN_SEARCH - 1));
-      pv[MAX_PLY_IN_SEARCH - 1] = 0;
-
-      if (score >= beta) {
-        if (mv != killer[ply][0]) {
-          killer[ply][1] = killer[ply][0];
-          killer[ply][0] = mv;
+      if (score > best_score) {
+        best_score = score;
+        best_move_index = mv_index;
+        pv[0] = mv;
+        memcpy(pv + 1, subpv, sizeof(move_t) * (MAX_PLY_IN_SEARCH - 1));
+        pv[MAX_PLY_IN_SEARCH - 1] = 0;
+        
+        if (score >= beta) {
+          if (mv != killer[ply][0]) {
+            killer[ply][1] = killer[ply][0];
+            killer[ply][0] = mv;
+          }
+          found = true;
+          break;
         }
-        break;
       }
+    }
+    if (found) {
+      break;
     }
   }
-
+    
   if (quiescence == false) {
-    if (mv_index < num_of_moves) {
+    if ((i == 0 && mv_index < num_of_moves[0]) || (i == 1 && mv_index < num_of_moves[1])) {
       mv_index++;   // moves tried
     }
-    update_best_move_history(p, best_move_index, move_list, mv_index);
+    if (i==0) {
+      update_best_move_history(p, best_move_index, move_list[0], mv_index);
+    }
+    else {
+      update_best_move_history(p, num_of_moves[0] + 1, move_list[0], num_of_moves[0]);
+      update_best_move_history(p, best_move_index, move_list[1], mv_index);
+    }
   }
   assert(abs(best_score) != -INF);
-
+  
   if (best_score < beta) {
     tt_hashtable_put(p->key, depth,
-        tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
+                     tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
   } else {
     tt_hashtable_put(p->key, depth,
-        tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
+                     tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
   }
-
+  
   return best_score;
 }
-
+  
 // search principal variation
 static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
                         int ply, move_t *pv, uint64_t *node_count) {
