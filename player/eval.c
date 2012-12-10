@@ -49,6 +49,11 @@ bool between(int c, int a, int b) {
   return x;
 }
 
+// assumes a <= b
+inline bool betweenrange(int c, int a, int b) {
+  return (c >= a && c <= b);
+}
+
 // PBETWEEN heuristic: Bonus for Pawn at (f, r) in rectangle defined by Kings at the corners
 ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
   bool is_between =
@@ -492,23 +497,32 @@ score_t eval(position_t *p, bool verbose) {
   ev_score_t bonus;
   char buf[MAX_CHARS_IN_MOVE];
   bool is_between;
-  fil_t fil_of_white_king = fil_of(p->king_locs[WHITE]);
-  fil_t fil_of_black_king = fil_of(p->king_locs[BLACK]);
-  rnk_t rnk_of_white_king = rnk_of(p->king_locs[WHITE]);
-  rnk_t rnk_of_black_king = rnk_of(p->king_locs[BLACK]);
+  fil_t king_fil[2] = { fil_of(p->king_locs[0]), fil_of(p->king_locs[1]) }; // respects ordering of WHITE and BLACK
+  rnk_t king_rnk[2] = { rnk_of(p->king_locs[0]), rnk_of(p->king_locs[1]) }; // respects ordering of WHITE and BLACK
 
   // King heuristics
-  bonus = kface(p, fil_of_black_king, rnk_of_black_king);
+  bonus = kface(p, king_fil[BLACK], king_rnk[BLACK]);
   score[BLACK] += bonus;
-  bonus = kface(p, fil_of_white_king, rnk_of_white_king);
+  bonus = kface(p, king_fil[WHITE], king_rnk[WHITE]);
   score[WHITE] += bonus;
   // KAGGRESSIVE heuristic
-  bonus = kaggressive(p, fil_of_black_king, rnk_of_black_king);
+  bonus = kaggressive(p, king_fil[BLACK], king_rnk[BLACK]);
   score[BLACK] += bonus;
-  bonus = kaggressive(p, fil_of_white_king, rnk_of_white_king);
+  bonus = kaggressive(p, king_fil[WHITE], king_rnk[WHITE]);
   score[WHITE] += bonus;
 
-  for (int c = 0; c < 2; c++) {
+  if (king_rnk[0] > king_rnk[1]) { // sort king_rnk. won't respect ordering of WHITE and BLACK anymore
+    rnk_t tmp = king_rnk[0];
+    king_rnk[0] = king_rnk[1];
+    king_rnk[1] = tmp;
+  }
+  if (king_fil[0] > king_fil[1]) { // sort king_fil. won't respect ordering of WHITE and BLACK anymore
+    fil_t tmp = king_fil[0];
+    king_fil[0] = king_fil[1];
+    king_fil[1] = tmp;
+  }
+
+  for (int c = 0; c < 2; c++) { // consider unrolling this loop or using pointer access
     for (int i = 0; i < PAWNS_COUNT; i++) {
       square_t sq = p->pawns_locs[c][i];
       if (sq != 0) {
@@ -516,14 +530,15 @@ score_t eval(position_t *p, bool verbose) {
         bonus = PAWN_EV_VALUE;
         score[c] += bonus;
         // PBETWEEN heuristic
-        is_between = between(fil_of(sq), fil_of_white_king, fil_of_black_king) &&
-            between(rnk_of(sq), rnk_of_white_king, rnk_of_black_king);
-        bonus = is_between ? PBETWEEN : 0;
-        score[c] += bonus;
+        if (betweenrange(fil_of(sq), king_fil[0], king_fil[1]) && 
+            betweenrange(rnk_of(sq), king_rnk[0], king_rnk[1])) {
+          bonus = PBETWEEN;
+          score[c] += bonus;
+        }
       }
     }
   }
-
+  
   // Make sure that the squares in the pawns_locs are unique.
   // for (int i = 0; i < 2 * PAWNS_COUNT; i++) {
   //   square_t sq = *(*(p->pawns_locs) + i);
