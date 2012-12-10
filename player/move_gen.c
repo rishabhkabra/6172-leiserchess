@@ -469,45 +469,40 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     color_t from_piece_color = color_of(from_piece);
     color_t to_piece_color = color_of(to_piece);
     // Update King locations if necessary
-    switch (ptype_of(from_piece)) {
-      case KING:
-        next->king_locs[from_piece_color] = to_sq;   
-        break;
-      case PAWN:
-        for (int i = 0; i < PAWNS_COUNT; i++) {
-          if (next->pawns_locs[from_piece_color][i] == from_sq) {
-            next->pawns_locs[from_piece_color][i] = to_sq;
-            break;
-          }
-        }
-        break;
-      default:
-        assert(false);
+    if (ptype_of(from_piece) == KING) {
+      next->king_locs[from_piece_color] = to_sq;
     }
-    switch (ptype_of(to_piece)) {
-      case KING:
-        next->king_locs[to_piece_color] = from_sq;
-        break;
-      case PAWN:
-        for (int i = 0; i < PAWNS_COUNT; i++) {
-          if (next->pawns_locs[to_piece_color][i] == to_sq) {
-            next->pawns_locs[to_piece_color][i] = from_sq;
-            break;
-          }
-        }
-        break;
-      case EMPTY:
-        rnk_t from_r = rnk_of(from_sq);
-        rnk_t to_r = rnk_of(to_sq);
-        fil_t from_f = fil_of(from_sq);
-        fil_t to_f = fil_of(to_sq);
-        reset_bit(next, from_f, from_r);
-        set_bit(next, to_f, to_r);
-        break;
+    if (ptype_of(to_piece) == KING) {
+      next->king_locs[to_piece_color] = from_sq;
     }
+    // Update Pawns location if neccessary
+    if (ptype_of(from_piece) == PAWN) {
+      for (int i = 0; i < PAWNS_COUNT; i++) {
+        if (next->pawns_locs[from_piece_color][i] == from_sq) {
+          next->pawns_locs[from_piece_color][i] = to_sq;
+          break;
+        }
+      }
+    }
+    if (ptype_of(to_piece) == PAWN) {
+      for (int i = 0; i < PAWNS_COUNT; i++) {
+        if (next->pawns_locs[to_piece_color][i] == to_sq) {
+          next->pawns_locs[to_piece_color][i] = from_sq;
+          break;
+        }
+      }
+    }
+
     assert(ptype_of(from_piece) == PAWN || ptype_of(from_piece) == KING);
-    assert(ptype_of(to_piece) != INVALID);   
-    
+    assert(ptype_of(to_piece) != INVALID);
+    if (ptype_of(to_piece) == EMPTY) {
+      rnk_t from_r = rnk_of(from_sq);
+      rnk_t to_r = rnk_of(to_sq);
+      fil_t from_f = fil_of(from_sq);
+      fil_t to_f = fil_of(to_sq);
+      reset_bit(next, from_f, from_r);
+      set_bit(next, to_f, to_r);
+    }
     //std::cout<<"\nChecking after piece move.";
     //check_bit_row_and_column(next);
 
