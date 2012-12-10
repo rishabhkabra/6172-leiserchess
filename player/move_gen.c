@@ -484,10 +484,8 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
       rnk_t to_r = rnk_of(to_sq);
       fil_t from_f = fil_of(from_sq);
       fil_t to_f = fil_of(to_sq);
-      next->bit_ranks[from_r] &= ~(1 << (BITS_PER_VECTOR - from_f - 1)); // set from_r'th column's from_f'th bit to 0. bitmask needed is all ones except f'th bit.
-      next->bit_files[from_f] &= ~(1 << (BITS_PER_VECTOR - from_r - 1)); // set from_f'th row's from_r'th bit to 0
-      next->bit_ranks[to_r] |= 1 << (BITS_PER_VECTOR - to_f - 1); // set to_r'th column's to_f'th bit to 1 
-      next->bit_files[to_f] |= 1 << (BITS_PER_VECTOR - to_r - 1); // set to_f'th row's to_r'th bit to 1
+      reset_bit(next, from_f, from_r);
+      set_bit(next, to_f, to_r);
     }
     //std::cout<<"\nChecking after piece move.";
     //check_bit_row_and_column(next);
@@ -725,10 +723,8 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
     fil_t f = fil_of(victim_sq);
     //assert(r >= 0 && r < BOARD_WIDTH);
     //assert(f >= 0 && f < BOARD_WIDTH);
+    reset_bit(next, f, r);
 
-    next->bit_ranks[r] &= ~(1 << (BITS_PER_VECTOR - f - 1)); // set r'th column's f'th bit to 0. bitmask needed is all ones except f'th bit.
-    next->bit_files[f] &= ~(1 << (BITS_PER_VECTOR - r - 1)); // set f'th row's r'th bit to 0
-    
     color_t victim_color = color_of(next->victim);
     if (ptype_of(next->victim)) {
       for (int i = 0; i < PAWNS_COUNT; i++) {

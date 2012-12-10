@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <iostream>
+#include <bitset>
 #include "util.h"
 
 #define MAX_NUM_MOVES 100      // real number = 7 x (8 + 3) + 1 x (8 + 4) = 89
@@ -146,6 +147,7 @@ typedef enum {
 //----------------------------------------------------------------------
 // position
 //TODO: Figure out the optimal ordering of this.
+
 typedef struct position {
   uint64_t     key;              // hash key
   move_t       last_move;        // move that led to this position
@@ -155,8 +157,10 @@ typedef struct position {
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
   square_t     pawns_locs[2][PAWNS_COUNT]; // Locations of the pawns
-  uint16_t     bit_ranks[BOARD_WIDTH];
-  uint16_t     bit_files[BOARD_WIDTH];
+  //bitset<BITS_PER_BOARD_SIDE>     bit_ranks[BOARD_WIDTH];
+  //bitset<BITS_PER_BOARD_SIDE>     bit_files[BOARD_WIDTH];
+  uint16_t bit_ranks[BOARD_WIDTH];
+  uint16_t bit_files[BOARD_WIDTH];
 } position_t;
 
 #define BITS_PER_VECTOR 16
@@ -247,6 +251,26 @@ inline rnk_t rnk_of(square_t sq) {
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   // printf("rank: %d\n", r);
   return r;
+}
+
+inline void reset_bit(position *p, fil_t f, rnk_t r) {
+  
+  p->bit_ranks[r] &= ~(1 << (BITS_PER_VECTOR - f - 1)); // reset r'th column's f'th bit to 0. bitmask needed is all ones except f'th bit.                 
+  p->bit_files[f] &= ~(1 << (BITS_PER_VECTOR - r - 1)); // reset f'th row's r'th bit to 0
+  /*
+  p->bit_ranks[r].reset(f);
+  p->bit_files[f].reset(r);
+  */
+}
+
+inline void set_bit(position *p, fil_t f, rnk_t r) {
+  
+  p->bit_ranks[r] |= 1 << (BITS_PER_VECTOR - f - 1); // set to_r'th column's to_f'th bit to 1                                                                         
+  p->bit_files[f] |= 1 << (BITS_PER_VECTOR - r - 1); // set to_f'th row's to_r'th bit to 1                                                                            
+  /*
+  p->bit_ranks[r].set(f);
+  p->bit_ranks[f].set(r);
+  */
 }
 
 inline square_t from_square(move_t mv) {
