@@ -521,21 +521,21 @@ score_t eval(position_t *p, bool verbose) {
     king_fil[0] = king_fil[1];
     king_fil[1] = tmp;
   }
-
+  int i;
+  square_t sq;
   for (int c = 0; c < 2; c++) { // consider unrolling this loop or using pointer access
-    for (int i = 0; i < PAWNS_COUNT; i++) {
-      square_t sq = p->pawns_locs[c][i];
-      if (sq != 0) {
-        // MATERIAL heuristic: Bonus for each Pawn
-        bonus = PAWN_EV_VALUE;
+    i = 0;
+    while (sq = p->pawns_locs[c][i]) {
+      // MATERIAL heuristic: Bonus for each Pawn
+      bonus = PAWN_EV_VALUE;
+      score[c] += bonus;
+      // PBETWEEN heuristic
+      if (betweenrange(fil_of(sq), king_fil[0], king_fil[1]) && 
+          betweenrange(rnk_of(sq), king_rnk[0], king_rnk[1])) {
+        bonus = PBETWEEN;
         score[c] += bonus;
-        // PBETWEEN heuristic
-        if (betweenrange(fil_of(sq), king_fil[0], king_fil[1]) && 
-            betweenrange(rnk_of(sq), king_rnk[0], king_rnk[1])) {
-          bonus = PBETWEEN;
-          score[c] += bonus;
-        }
       }
+      i++;
     }
   }
   

@@ -332,12 +332,10 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list) {
   generate_single_piece_move(KING, sq, move_count, p, sortable_move_list);
   assert(move_count < MAX_NUM_MOVES);
   sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, sq); // Also generate null move
-  for (int i = 0; i < PAWNS_COUNT; i++) {
-    sq = p->pawns_locs[ctm][i];
-    if (!sq) {
-      continue;
-    }
+  int i = 0;
+  while (sq = p->pawns_locs[ctm][i]) {
     generate_single_piece_move(PAWN, sq, move_count, p, sortable_move_list);
+    i++; 
   }
   return move_count;
 }
@@ -352,7 +350,6 @@ bool is_move_valid(position_t *p, move_t mv) {
   if (color_to_move_of(p) != color_of(p->board[from_sq])){
     return false;
   }
-  assert(ptype_of(p->board[from_sq]) != INVALID);
   assert(ptype_of(p->board[to_square(mv)]) != INVALID);
   if (ptype_of(p->board[from_sq]) != typ) {
     return false;
@@ -392,6 +389,7 @@ int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
   }
   return move_count;
 }
+
 
 
 void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
@@ -477,22 +475,28 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     }
     // Update Pawns location if neccessary
     if (ptype_of(from_piece) == PAWN) {
-      for (int i = 0; i < PAWNS_COUNT; i++) {
-        if (next->pawns_locs[from_piece_color][i] == from_sq) {
+      int i = 0;
+      square_t sq;
+      while (sq = next->pawns_locs[from_piece_color][i]) {
+        if (sq == from_sq) {
           next->pawns_locs[from_piece_color][i] = to_sq;
           break;
         }
+        i++;
       }
     }
     if (ptype_of(to_piece) == PAWN) {
-      for (int i = 0; i < PAWNS_COUNT; i++) {
-        if (next->pawns_locs[to_piece_color][i] == to_sq) {
+      int i = 0;
+      square_t sq;
+      while (sq = next->pawns_locs[to_piece_color][i]) {
+        if (sq == to_sq) {
           next->pawns_locs[to_piece_color][i] = from_sq;
           break;
         }
+        i++;
       }
     }
-
+    
     assert(ptype_of(from_piece) == PAWN || ptype_of(from_piece) == KING);
     assert(ptype_of(to_piece) != INVALID);
     if (ptype_of(to_piece) == EMPTY) {
@@ -527,6 +531,41 @@ void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
     fprintf(stderr, "After:\n");
     display(next);
   })
+}
+
+static inline void check_pawns_locs_invariant(position_t * next) {
+  for (int c = 0; c < 2; c++) {
+    assert(next->pawns_locs[c][PAWNS_COUNT] == 0); // The end of pawns_locs is a sentinel
+    int i = 0;
+    square_t sq;
+    while (sq = next->pawns_locs[c][i]) {
+      assert(ptype_of(next->board[sq]) == PAWN);
+      i++;
+    }
+    while (i < PAWNS_COUNT + 1) {
+      assert(next->pawns_locs[c][i] == 0);
+      i++;
+    }
+  }
+  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
+    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
+      square_t sq = square_of(f, r);
+      piece_t x = next->board[sq];
+      color_t c = color_of(x);
+      if (ptype_of(x) == PAWN) {
+        bool found = false;
+        for (int i = 0; i < PAWNS_COUNT; i++) {
+          if (found) {
+            assert(next->pawns_locs[c][i] != sq);
+          }
+          if (next->pawns_locs[c][i] == sq) {
+            found = true;
+          }
+        }
+        assert(found);
+      }
+    }
+  }
 }
 
 // returns square of piece to be removed from board or 0
@@ -743,12 +782,25 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
 
     color_t victim_color = color_of(next->victim);
     if (ptype_of(next->victim)) {
-      for (int i = 0; i < PAWNS_COUNT; i++) {
-        if (next->pawns_locs[victim_color][i] == victim_sq) {
+      int i = 0;
+      square_t sq;
+      while (sq = next->pawns_locs[victim_color][i]) {
+        if (sq == victim_sq) {
           next->pawns_locs[victim_color][i] = 0;
           break;
         }
+        i++;
       }
+      int j = PAWNS_COUNT - 1;
+      while (!(sq = next->pawns_locs[victim_color][j]) && j >= i) { // Find the index of the first nonzero element from the end of the array
+        j--;
+      }
+      if (j > i) {
+        assert(next->pawns_locs[victim_color][j] != 0);
+        next->pawns_locs[victim_color][i] = next->pawns_locs[victim_color][j];
+        next->pawns_locs[victim_color][j] = 0;
+      }
+      //std::stable_partition(next->pawns_locs[victim_color], next->pawns_locs[victim_color] + PAWNS_COUNT, is_greater_than_zero);  
     }
     //std::cout<<"\nChecking after piece death. Victim: "<<ptype_of(next->victim)<<" at location ("<<((int)f)<<", "<<((int)r)<<")";
     //check_bit_row_and_column(next);
@@ -758,9 +810,10 @@ piece_t make_move(position_t *previous, position_t *next, move_t mv) {
     WHEN_DEBUG_VERBOSE({
       square_to_str(victim_sq, buf);
       DEBUG_LOG(1, "Zapped piece on %s\n", buf);
+      DEBUG_LOG(1, "Zapped piece on %s\n", buf);
     })
   }
-
+  //check_pawns_locs_invariant(next);
   return next->victim;
 }
 

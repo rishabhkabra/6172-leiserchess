@@ -22,7 +22,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-
+#include <algorithm>
 #include "move_gen.h"
 
 static void fen_error(char *fen, int c_count, char *msg) {
@@ -362,7 +362,7 @@ int fen_to_pos(position_t *p, char *fen) {
   }
 
   // Reset pawns
-  for (int i = 0; i < PAWNS_COUNT; i++) {
+  for (int i = 0; i < PAWNS_COUNT + 1; i++) {
     p->pawns_locs[0][i] = 0;
     p->pawns_locs[1][i] = 0;
   }
@@ -391,7 +391,8 @@ int fen_to_pos(position_t *p, char *fen) {
       }
     }
   }
-
+  std::stable_partition(p->pawns_locs[BLACK], p->pawns_locs[BLACK] + PAWNS_COUNT, is_greater_than_zero);  
+  std::stable_partition(p->pawns_locs[WHITE], p->pawns_locs[WHITE] + PAWNS_COUNT, is_greater_than_zero);  
   if (Kings[WHITE] == 0) {
     fen_error(fen, c_count, "No White Kings");
     return 1;
