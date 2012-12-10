@@ -282,30 +282,46 @@ int generate_all_old(position_t *p, sortable_move_t *sortable_move_list,
 inline void generate_single_piece_move(ptype_t typ, square_t sq, int &move_count, position_t *p, sortable_move_t *sortable_move_list) {
   assert(typ != INVALID);
   // directions
-  for (int d = 0; d < 8; d++) {
-    int dest = sq + dir_of(d);
-    if (ptype_of(p->board[dest]) == INVALID) {
-      continue;    // illegal square
+    int dest = sq + dir_of(0);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(1);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(2);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(3);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(4);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(5);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(6);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
+    } 
+    dest = sq + dir_of(7);
+    if (ptype_of(p->board[dest]) != INVALID) {
+      sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
     }
-
-    WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
-    WHEN_DEBUG_VERBOSE({
-      move_to_str(move_of(typ, 0, sq, dest), buf);
-      DEBUG_LOG(1, "Before: %s ", buf);
-    })
     assert(move_count < MAX_NUM_MOVES);
-    sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
-
-    WHEN_DEBUG_VERBOSE({
-      move_to_str(get_move(sortable_move_list[move_count-1]), buf);
-      DEBUG_LOG(1, "After: %s\n", buf);
-    })
-  }
+    
+  
   // rotations - three directions possible
-  for (int rot = 1; rot < 4; ++rot) {
+    sortable_move_list[move_count++] = move_of(typ, (rot_t) 1, sq, sq);
+    sortable_move_list[move_count++] = move_of(typ, (rot_t) 2, sq, sq);
+    sortable_move_list[move_count++] = move_of(typ, (rot_t) 3, sq, sq);
     assert(move_count < MAX_NUM_MOVES);
-    sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
-  }
 }
 
 int generate_all(position_t *p, sortable_move_t *sortable_move_list) {
