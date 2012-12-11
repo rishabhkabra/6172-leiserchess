@@ -156,7 +156,7 @@ typedef struct position {
   struct position  *history;     // history of position
   short int    ply;              // Even ply are White, odd are Black
   piece_t      board[ARR_SIZE];
-  square_t     pawns_locs[2][PAWNS_COUNT]; // Locations of the pawns
+  square_t     pawns_locs[2][PAWNS_COUNT + 1]; // Locations of the pawns
   //bitset<BITS_PER_BOARD_SIDE>     bit_ranks[BOARD_WIDTH];
   //bitset<BITS_PER_BOARD_SIDE>     bit_files[BOARD_WIDTH];
   uint16_t bit_ranks[BOARD_WIDTH];
@@ -251,6 +251,10 @@ inline rnk_t rnk_of(square_t sq) {
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   // printf("rank: %d\n", r);
   return r;
+}
+
+inline bool is_greater_than_zero (square_t sq) { 
+  return (sq > 0); 
 }
 
 inline void reset_bit(position *p, fil_t f, rnk_t r) {
