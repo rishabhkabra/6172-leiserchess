@@ -101,7 +101,28 @@ ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
 }
 
 // KAGGRESSIVE heuristic: bonus for King with more space to back
-ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
+inline ev_score_t kaggressive(fil_t f, rnk_t r, fil_t otherf, rnk_t otherr) {
+
+  assert(f != otherf);
+  assert(r != otherr);
+  int bonus = 0;
+
+  if (otherf >= f) {   // delta_fil >= 0 is equivalent to otherf >= f
+    bonus = f + 1;
+  } else {
+    bonus = BOARD_WIDTH - f;
+  }
+
+  if (otherr >= r) {   // delta_rnk >= 0 is equivalent to otherr >= r
+    bonus *= r + 1;
+  } else {
+    bonus *= BOARD_WIDTH - r;
+  }
+
+  return (KAGGRESSIVE * bonus) / (BOARD_WIDTH * BOARD_WIDTH);
+}
+
+ev_score_t kaggressive_old(position_t *p, fil_t f, rnk_t r) {
   square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
@@ -146,9 +167,7 @@ bool probe_for_mirror(position_t *p, square_t sq, int direction) {
 // Penalty for two vulnerabilities = 3
 ev_score_t pmirror(position_t *p, square_t sq) {
   piece_t x = p->board[sq];
-
   assert(ptype_of(x) == PAWN);
-
   int penalty = 0;
 
   for (int i = 1; i <= 2; ++i) {
@@ -161,6 +180,15 @@ ev_score_t pmirror(position_t *p, square_t sq) {
 
   return penalty * PMIRROR;
 }
+
+ev_score_t pmirror_new(position_t *p, square_t sq) {
+  piece_t x = p->board[sq];
+  assert(ptype_of(x) == PAWN);
+  int penalty = 0;
+  int direction = ORIENTATION_MASK & (1 + orientation_of(x));  
+  return 0;
+}
+
 
 // c is color-to-move
 int king_vul(position_t *p, color_t c, square_t sq, king_orientation_t bdir) {
@@ -418,6 +446,10 @@ score_t unoptimized_eval(position_t *p, bool verbose) {
       square_t sq = square_of(f, r);
       piece_t x = p->board[sq];
       color_t c = color_of(x);
+      color_t othercolor;
+      square_t otherking;
+      fil_t otherf;
+      rnk_t otherr;
       if (verbose) {
         square_to_str(sq, buf);
       }
@@ -451,7 +483,12 @@ score_t unoptimized_eval(position_t *p, bool verbose) {
           score[c] += bonus;
 
           // KAGGRESSIVE heuristic
-          bonus = kaggressive(p, f, r);
+          othercolor = opp_color(c);
+          otherking = p->king_locs[othercolor];
+          otherf = fil_of(otherking);
+          otherr = rnk_of(otherking);
+          bonus = kaggressive(f, r, otherf, otherr);
+          assert(bonus == kaggressive_old(p, f, r));
           if (verbose) {
             printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
           }
@@ -506,9 +543,11 @@ score_t eval(position_t *p, bool verbose) {
   bonus = kface(p, king_fil[WHITE], king_rnk[WHITE]);
   score[WHITE] += bonus;
   // KAGGRESSIVE heuristic
-  bonus = kaggressive(p, king_fil[BLACK], king_rnk[BLACK]);
+  bonus = kaggressive(king_fil[BLACK], king_rnk[BLACK], king_fil[WHITE], king_rnk[WHITE]);
+  assert(bonus == kaggressive_old(p, king_fil[BLACK], king_rnk[BLACK]));
   score[BLACK] += bonus;
-  bonus = kaggressive(p, king_fil[WHITE], king_rnk[WHITE]);
+  bonus = kaggressive(king_fil[WHITE], king_rnk[WHITE], king_fil[BLACK], king_rnk[BLACK]);
+  assert(bonus == kaggressive_old(p, king_fil[WHITE], king_rnk[WHITE]));
   score[WHITE] += bonus;
 
   if (king_rnk[0] > king_rnk[1]) { // sort king_rnk. won't respect ordering of WHITE and BLACK anymore
@@ -535,6 +574,8 @@ score_t eval(position_t *p, bool verbose) {
           bonus = PBETWEEN;
           score[c] += bonus;
         }
+        // PMIRROR penalty
+        //score[c] += pmirror(p, sq);
       }
     }
   }
