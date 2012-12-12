@@ -185,7 +185,7 @@ void tt_hashtable_put(uint64_t key, int depth, score_t score,
 }
 
 
-ttRec_t *tt_hashtable_get(uint64_t key) {
+ttRec_t *tt_hashtable_get(uint64_t key) { // FINAL OPTIMIZATION: consider inlining by appending file to search.c
   if (!USE_TT) {
     return NULL;  // done if we are not using the transposition table
   }

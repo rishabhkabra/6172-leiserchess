@@ -392,7 +392,7 @@ int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
 
 
 
-void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
+void low_level_make_move(position_t *previous, position_t *next, move_t mv) { // FINAL OPTIMIZATION: inline
   assert(mv != 0);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )

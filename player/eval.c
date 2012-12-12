@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "eval.h"
 
 //----------------------------------------------------------------------
@@ -62,9 +61,35 @@ ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
   return is_between ? PBETWEEN : 0;
 }
 
+inline ev_score_t kface(piece_t x, fil_t f, rnk_t r, fil_t otherf, rnk_t otherr) {
+  assert(ptype_of(x) == KING);
+  int delta_fil = otherf - f;
+  int delta_rnk = otherr - r;
+  int bonus;
+  switch (orientation_of(x)) {
+   case NN:
+    bonus = delta_rnk;
+    break;
+   case EE:
+    bonus = delta_fil;
+    break;
+   case SS:
+    bonus = -delta_rnk;
+    break;
+   case WW:
+    bonus = -delta_fil;
+    break;
+   default:
+    bonus = 0;
+    assert(false);
+  }
+
+  return (bonus * KFACE) / (abs(delta_rnk) + abs(delta_fil));
+}
+
 
 // KFACE heuristic: bonus (or penalty) for King facing toward the other King
-ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
+ev_score_t kface_old(position_t *p, fil_t f, rnk_t r) {
   square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
@@ -372,7 +397,7 @@ int h_squares_attackable(position_t *p, color_t c) {
   h_attackable += h_dist(sq, o_king_sq);  
 
   while (true) {
-    sq += beam_of(bdir);
+    sq += beam_of(bdir); // FINAL OPTIMIZATION: note that beam_of doesn't change so often. calling the function so much is pointless.
     assert(sq < ARR_SIZE && sq >= 0);
     
     switch (ptype_of(p->board[sq])) {
@@ -446,10 +471,6 @@ score_t unoptimized_eval(position_t *p, bool verbose) {
       square_t sq = square_of(f, r);
       piece_t x = p->board[sq];
       color_t c = color_of(x);
-      color_t othercolor;
-      square_t otherking;
-      fil_t otherf;
-      rnk_t otherr;
       if (verbose) {
         square_to_str(sq, buf);
       }
@@ -475,7 +496,7 @@ score_t unoptimized_eval(position_t *p, bool verbose) {
 
         case KING:
           // KFACE heuristic
-          bonus = kface(p, f, r);
+          bonus = kface_old(p, f, r);
           if (verbose) {
             printf("KFACE bonus %d for %s King on %s\n", bonus,
                    color_to_str(c), buf);
@@ -483,12 +504,7 @@ score_t unoptimized_eval(position_t *p, bool verbose) {
           score[c] += bonus;
 
           // KAGGRESSIVE heuristic
-          othercolor = opp_color(c);
-          otherking = p->king_locs[othercolor];
-          otherf = fil_of(otherking);
-          otherr = rnk_of(otherking);
-          bonus = kaggressive(f, r, otherf, otherr);
-          assert(bonus == kaggressive_old(p, f, r));
+          bonus = kaggressive_old(p, f, r);
           if (verbose) {
             printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
           }
@@ -538,9 +554,11 @@ score_t eval(position_t *p, bool verbose) {
   rnk_t king_rnk[2] = { rnk_of(p->king_locs[0]), rnk_of(p->king_locs[1]) }; // respects ordering of WHITE and BLACK
 
   // King heuristics
-  bonus = kface(p, king_fil[BLACK], king_rnk[BLACK]);
+  bonus = kface(p->board[p->king_locs[BLACK]], king_fil[BLACK], king_rnk[BLACK], king_fil[WHITE], king_rnk[WHITE]);
+  assert(bonus == kface_old(p, king_fil[BLACK], king_rnk[BLACK]));
   score[BLACK] += bonus;
-  bonus = kface(p, king_fil[WHITE], king_rnk[WHITE]);
+  bonus = kface(p->board[p->king_locs[WHITE]], king_fil[WHITE], king_rnk[WHITE], king_fil[BLACK], king_rnk[BLACK]);
+  assert(bonus == kface_old(p, king_fil[WHITE], king_rnk[WHITE]));
   score[WHITE] += bonus;
   // KAGGRESSIVE heuristic
   bonus = kaggressive(king_fil[BLACK], king_rnk[BLACK], king_fil[WHITE], king_rnk[WHITE]);
