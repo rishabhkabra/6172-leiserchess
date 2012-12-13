@@ -393,11 +393,13 @@ int h_squares_attackable(position_t *p, color_t c) {
   // Fire laser, recording in laser_map
   square_t sq = p->king_locs[c];
   int bdir = orientation_of(p->board[sq]);
+  int beam = beam_of(bdir);
   assert(ptype_of(p->board[sq]) == KING);
   h_attackable += h_dist(sq, o_king_sq);  
 
   while (true) {
-    sq += beam_of(bdir); // FINAL OPTIMIZATION: note that beam_of doesn't change so often. calling the function so much is pointless.
+    assert(beam == beam_of(bdir));
+    sq += beam;
     assert(sq < ARR_SIZE && sq >= 0);
     
     switch (ptype_of(p->board[sq])) {
@@ -410,6 +412,7 @@ int h_squares_attackable(position_t *p, color_t c) {
         if (bdir < 0) {  // Hit back of Pawn
           return h_attackable;
         }
+        beam = beam_of(bdir);
         break;
       case KING:  // King
         h_attackable += h_dist(sq, o_king_sq);  
