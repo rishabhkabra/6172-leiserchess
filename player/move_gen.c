@@ -392,15 +392,15 @@ int generate_all_test(position_t *p, sortable_move_t *sortable_move_list,
 
 
 
-void low_level_make_move(position_t *previous, position_t *next, move_t mv) { // FINAL OPTIMIZATION: inline
+inline void low_level_make_move(position_t *previous, position_t *next, move_t mv) {
   assert(mv != 0);
-
-  WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
+  
+  WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; );
   WHEN_DEBUG_VERBOSE({
-    move_to_str(mv, buf);
-    DEBUG_LOG(1, "low_level_make_move: %s\n", buf);
-  })
-
+      move_to_str(mv, buf);
+      DEBUG_LOG(1, "low_level_make_move: %s\n", buf);
+    });
+  
   assert(previous->key == compute_zob_key(previous));
 
   WHEN_DEBUG_VERBOSE({
